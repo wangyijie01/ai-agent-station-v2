@@ -1,0 +1,17 @@
+spring:
+  config:
+    name: ai-agent-station-study-app
+  profiles:
+    active: dev
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    tags:
+      application: ${spring.config.name}
