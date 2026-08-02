@@ -263,6 +263,7 @@ Prometheus 指标：
 验收命令：
 
 ```powershell
+cd backend
 .\mvnw.cmd -pl ai-agent-station-study-domain -am test
 .\mvnw.cmd -DskipTests compile
 

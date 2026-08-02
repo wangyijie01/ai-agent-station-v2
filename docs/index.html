@@ -1,1105 +1,989 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="AI Agent Station V2：基于 Spring AI 的可治理 Agent Runtime，具备 Skills、状态机、恢复、工具治理、审计与评估能力。">
-  <meta name="theme-color" content="#090b0f">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="AI Agent Station V2 · Governed Runtime">
-  <meta property="og:description" content="把非确定性的模型行为，装进确定性的工程边界。">
-  <meta property="og:url" content="https://wangyijie01.github.io/ai-agent-station-v2/">
-  <link rel="canonical" href="https://wangyijie01.github.io/ai-agent-station-v2/">
-  <title>AI Agent Station V2 · Governed Runtime</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="AI Agent Station：面向复杂任务的可治理 AI Agent 平台，统一管理 Skills、Run 状态、工具权限、SSE 事件与运行审计。" />
+  <meta name="theme-color" content="#f6f7fb" />
+  <meta property="og:title" content="AI Agent Station" />
+  <meta property="og:description" content="让 Agent 从会调用工具的 Demo，进入可管理、可恢复、可审计的工程边界。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://wangyijie01.github.io/ai-agent-station-v2/assets/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <title>AI Agent Station · 可治理智能体平台</title>
   <style>
     :root {
-      color-scheme: dark;
-      --bg: #090b0f;
-      --bg-soft: #10141a;
-      --panel: rgba(18, 23, 30, 0.82);
-      --panel-strong: #151b23;
-      --line: rgba(255, 255, 255, 0.11);
-      --line-strong: rgba(255, 255, 255, 0.2);
-      --text: #f5f3ea;
-      --muted: #9ca5b4;
-      --amber: #ffb547;
-      --cyan: #68e0d4;
-      --red: #ff7c70;
-      --green: #9fe870;
-      --shadow: 0 24px 90px rgba(0, 0, 0, 0.34);
-      --mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", Consolas, monospace;
-      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --paper: #f6f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f0f2f8;
+      --ink: #172033;
+      --muted: #657087;
+      --line: #dfe3ec;
+      --blue: #3156d9;
+      --blue-dark: #233fa4;
+      --blue-soft: #e8edff;
+      --green: #117864;
+      --green-soft: #e2f4ef;
+      --orange: #c5672d;
+      --shadow: 0 18px 50px rgba(29, 44, 79, 0.1);
+      --max: 1160px;
     }
 
-    html[data-theme="light"] {
-      color-scheme: light;
-      --bg: #f1efe7;
-      --bg-soft: #e8e5db;
-      --panel: rgba(255, 255, 255, 0.78);
-      --panel-strong: #ffffff;
-      --line: rgba(20, 30, 40, 0.12);
-      --line-strong: rgba(20, 30, 40, 0.24);
-      --text: #10141a;
-      --muted: #5f6876;
-      --amber: #a75e00;
-      --cyan: #007f78;
-      --red: #b83931;
-      --green: #437c18;
-      --shadow: 0 24px 70px rgba(50, 45, 30, 0.14);
-    }
+    * { box-sizing: border-box; }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
+    html { scroll-behavior: smooth; }
 
     body {
       margin: 0;
-      min-width: 320px;
-      background:
-        linear-gradient(var(--line) 1px, transparent 1px),
-        linear-gradient(90deg, var(--line) 1px, transparent 1px),
-        radial-gradient(circle at 12% 8%, rgba(104, 224, 212, 0.11), transparent 28rem),
-        radial-gradient(circle at 88% 12%, rgba(255, 181, 71, 0.11), transparent 28rem),
-        var(--bg);
-      background-size: 48px 48px, 48px 48px, auto, auto, auto;
-      color: var(--text);
-      font-family: var(--sans);
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
       line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    button,
-    a {
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    button:focus-visible,
-    a:focus-visible {
-      outline: 2px solid var(--cyan);
-      outline-offset: 4px;
-    }
+    a { color: inherit; }
+    button { font: inherit; }
 
     .skip-link {
       position: fixed;
-      top: -80px;
-      left: 20px;
+      top: 10px;
+      left: 10px;
       z-index: 100;
-      padding: 10px 14px;
-      background: var(--text);
-      color: var(--bg);
-      border-radius: 8px;
+      padding: 9px 12px;
+      color: white;
+      background: var(--blue);
+      transform: translateY(-150%);
     }
 
-    .skip-link:focus {
-      top: 16px;
-    }
+    .skip-link:focus { transform: translateY(0); }
 
-    .shell {
-      width: min(1180px, calc(100% - 40px));
-      margin: 0 auto;
-    }
-
-    .topbar {
+    .site-header {
       position: sticky;
       top: 0;
-      z-index: 40;
-      border-bottom: 1px solid var(--line);
-      background: color-mix(in srgb, var(--bg) 82%, transparent);
-      backdrop-filter: blur(18px);
+      z-index: 30;
+      border-bottom: 1px solid rgba(223, 227, 236, 0.88);
+      background: rgba(246, 247, 251, 0.94);
+      backdrop-filter: blur(14px);
     }
 
     .nav {
-      min-height: 68px;
+      width: min(var(--max), calc(100% - 40px));
+      height: 68px;
+      margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 24px;
+      gap: 28px;
     }
 
     .brand {
       display: inline-flex;
       align-items: center;
       gap: 11px;
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.09em;
-      text-transform: uppercase;
+      color: var(--ink);
+      font-weight: 760;
+      letter-spacing: -0.02em;
+      text-decoration: none;
     }
 
     .brand-mark {
-      width: 30px;
-      aspect-ratio: 1;
+      width: 36px;
+      height: 36px;
       display: grid;
       place-items: center;
-      border: 1px solid var(--line-strong);
-      background: var(--panel-strong);
-      box-shadow: inset 0 0 0 5px var(--bg-soft);
-    }
-
-    .brand-mark::before {
-      content: "";
-      width: 8px;
-      aspect-ratio: 1;
-      background: var(--amber);
-      box-shadow: 7px 7px 0 var(--cyan);
+      color: white;
+      background: var(--blue);
+      border-radius: 9px;
+      font-size: 13px;
+      letter-spacing: -0.04em;
     }
 
     .nav-links {
       display: flex;
       align-items: center;
       gap: 26px;
-      color: var(--muted);
       font-size: 14px;
+      font-weight: 650;
     }
 
-    .nav-links a:hover {
-      color: var(--text);
+    .nav-links a {
+      color: #4b566d;
+      text-decoration: none;
     }
 
-    .theme-toggle {
-      width: 40px;
-      height: 40px;
+    .nav-links a:hover,
+    .nav-links a:focus-visible { color: var(--blue); }
+
+    .nav-links .nav-github {
+      padding: 8px 13px;
+      color: white;
+      background: var(--ink);
+      border-radius: 8px;
+    }
+
+    .menu-button {
+      display: none;
+      width: 42px;
+      height: 42px;
       border: 1px solid var(--line);
-      background: var(--panel);
-      color: var(--text);
+      color: var(--ink);
+      background: var(--surface);
+      border-radius: 8px;
       cursor: pointer;
-      font: 700 12px var(--mono);
     }
+
+    main { overflow: hidden; }
 
     .hero {
-      min-height: calc(100vh - 68px);
+      position: relative;
+      padding: 92px 0 68px;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      border-radius: 50%;
+    }
+
+    .hero::before {
+      width: 360px;
+      height: 360px;
+      top: -170px;
+      right: 5%;
+      background: #e6ebff;
+    }
+
+    .hero::after {
+      width: 170px;
+      height: 170px;
+      left: 4%;
+      bottom: -60px;
+      background: #e2f4ef;
+    }
+
+    .hero-grid {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
       display: grid;
-      align-content: center;
-      padding: 92px 0 72px;
+      grid-template-columns: 1.02fr 0.98fr;
+      align-items: center;
+      gap: 74px;
     }
 
     .eyebrow {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 22px;
-      color: var(--amber);
-      font: 700 12px var(--mono);
+      margin: 0 0 18px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 800;
       letter-spacing: 0.14em;
       text-transform: uppercase;
     }
 
-    .eyebrow::before {
-      content: "";
-      width: 34px;
-      height: 1px;
-      background: currentColor;
-    }
-
-    h1,
-    h2,
-    h3,
-    p {
-      margin-top: 0;
-    }
+    h1, h2, h3, p { margin-top: 0; }
 
     h1 {
-      max-width: 980px;
-      margin-bottom: 28px;
-      font-size: clamp(46px, 8vw, 106px);
-      line-height: 0.94;
-      letter-spacing: -0.065em;
-      font-weight: 760;
+      margin-bottom: 22px;
+      font-size: clamp(46px, 6vw, 78px);
+      line-height: 1.03;
+      letter-spacing: -0.055em;
     }
 
-    h1 .outline {
-      color: transparent;
-      -webkit-text-stroke: 1px var(--muted);
-    }
-
-    .hero-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(250px, 0.7fr);
-      gap: 54px;
-      align-items: end;
-    }
-
-    .lead {
-      max-width: 720px;
-      margin-bottom: 32px;
+    .hero-copy {
+      max-width: 610px;
+      margin-bottom: 30px;
       color: var(--muted);
-      font-size: clamp(17px, 2vw, 21px);
+      font-size: clamp(17px, 1.8vw, 20px);
     }
 
-    .lead strong {
-      color: var(--text);
-      font-weight: 650;
-    }
-
-    .actions {
+    .hero-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
+      margin-bottom: 28px;
     }
 
     .button {
-      min-height: 48px;
+      min-height: 46px;
+      padding: 10px 18px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      padding: 0 18px;
-      border: 1px solid var(--line-strong);
-      background: var(--panel);
-      font: 700 13px var(--mono);
-      letter-spacing: 0.02em;
+      gap: 9px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 760;
+      text-decoration: none;
       transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
     }
 
-    .button:hover {
-      transform: translateY(-2px);
-      border-color: var(--cyan);
+    .button:hover { transform: translateY(-2px); }
+
+    .button-primary {
+      border-color: var(--blue);
+      color: white;
+      background: var(--blue);
     }
 
-    .button.primary {
-      background: var(--text);
-      color: var(--bg);
-      border-color: var(--text);
-    }
+    .button-primary:hover { background: var(--blue-dark); }
+    .button-secondary { background: var(--surface); }
+    .button-secondary:hover { border-color: #aab4c8; }
 
-    .button .arrow {
-      font-size: 17px;
-    }
-
-    .status-panel {
-      padding: 24px;
-      border: 1px solid var(--line-strong);
-      background: var(--panel);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
-    }
-
-    .status-head {
+    .hero-proof {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      color: var(--muted);
-      font: 700 11px var(--mono);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .pulse {
-      width: 9px;
-      aspect-ratio: 1;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 0 6px color-mix(in srgb, var(--green) 15%, transparent);
-    }
-
-    .metric {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: baseline;
-      padding: 14px 0;
-      border-top: 1px solid var(--line);
-    }
-
-    .metric span {
-      color: var(--muted);
+      flex-wrap: wrap;
+      gap: 10px 20px;
+      color: #566177;
       font-size: 13px;
-    }
-
-    .metric strong {
-      font: 700 23px var(--mono);
-    }
-
-    .section {
-      padding: 108px 0;
-      border-top: 1px solid var(--line);
-    }
-
-    .section-head {
-      display: grid;
-      grid-template-columns: 0.8fr 1.2fr;
-      gap: 48px;
-      margin-bottom: 56px;
-      align-items: end;
-    }
-
-    .kicker {
-      color: var(--cyan);
-      font: 700 12px var(--mono);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    h2 {
-      margin-bottom: 0;
-      font-size: clamp(35px, 5vw, 68px);
-      line-height: 1.02;
-      letter-spacing: -0.045em;
-    }
-
-    .section-intro {
-      margin-bottom: 0;
-      color: var(--muted);
-      font-size: 17px;
-    }
-
-    .architecture {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 12px;
-    }
-
-    .arch-card {
-      position: relative;
-      min-height: 170px;
-      padding: 22px;
-      border: 1px solid var(--line);
-      background: var(--panel);
-      overflow: hidden;
-    }
-
-    .arch-card::after {
-      content: attr(data-index);
-      position: absolute;
-      right: 16px;
-      bottom: -18px;
-      color: color-mix(in srgb, var(--text) 7%, transparent);
-      font: 800 76px/1 var(--mono);
-    }
-
-    .arch-card:nth-child(1),
-    .arch-card:nth-child(4) {
-      grid-column: span 3;
-    }
-
-    .arch-card:nth-child(2),
-    .arch-card:nth-child(3) {
-      grid-column: span 3;
-    }
-
-    .arch-card:nth-child(5) {
-      grid-column: span 5;
-    }
-
-    .arch-card:nth-child(6) {
-      grid-column: span 7;
-    }
-
-    .arch-card .tag,
-    .skill-card .tag {
-      display: inline-block;
-      margin-bottom: 28px;
-      color: var(--amber);
-      font: 700 11px var(--mono);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .arch-card h3 {
-      margin-bottom: 8px;
-      font-size: 19px;
-    }
-
-    .arch-card p,
-    .skill-card p {
-      margin-bottom: 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .skills {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1px;
-      border: 1px solid var(--line);
-      background: var(--line);
-    }
-
-    .skill-card {
-      min-height: 220px;
-      padding: 25px;
-      background: var(--bg-soft);
-      transition: background 180ms ease;
-    }
-
-    .skill-card:hover {
-      background: var(--panel-strong);
-    }
-
-    .skill-card h3 {
-      margin-bottom: 10px;
-      font-size: 20px;
-    }
-
-    .skill-card .tag {
-      margin-bottom: 40px;
-    }
-
-    .runtime-grid {
-      display: grid;
-      grid-template-columns: minmax(260px, 0.65fr) minmax(0, 1.35fr);
-      gap: 18px;
-    }
-
-    .scenario-list {
-      display: grid;
-      gap: 10px;
-      align-content: start;
-    }
-
-    .scenario-button {
-      width: 100%;
-      display: grid;
-      grid-template-columns: 30px 1fr auto;
-      align-items: center;
-      gap: 10px;
-      padding: 17px;
-      border: 1px solid var(--line);
-      background: var(--panel);
-      color: var(--text);
-      cursor: pointer;
-      text-align: left;
-      font-family: var(--sans);
-    }
-
-    .scenario-button[aria-selected="true"] {
-      border-color: var(--cyan);
-      background: color-mix(in srgb, var(--cyan) 8%, var(--panel));
-    }
-
-    .scenario-number {
-      color: var(--muted);
-      font: 700 12px var(--mono);
-    }
-
-    .scenario-title {
       font-weight: 650;
     }
 
-    .scenario-state {
-      color: var(--cyan);
-      font: 700 10px var(--mono);
-      letter-spacing: 0.05em;
+    .hero-proof span::before {
+      content: "✓";
+      margin-right: 7px;
+      color: var(--green);
+      font-weight: 900;
     }
 
-    .terminal {
-      min-height: 460px;
-      border: 1px solid var(--line-strong);
-      background: #080a0d;
-      color: #eef1f5;
+    .product-card {
+      position: relative;
+      padding: 18px;
+      border: 1px solid #d7dce8;
+      border-radius: 18px;
+      background: var(--surface);
       box-shadow: var(--shadow);
     }
 
-    .terminal-bar {
+    .product-card::before {
+      content: "";
+      position: absolute;
+      inset: 14px -14px -14px 14px;
+      z-index: -1;
+      border: 1px solid #cfd7ed;
+      border-radius: 18px;
+      background: #e9edfa;
+    }
+
+    .window-bar {
+      min-height: 42px;
+      padding-bottom: 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 13px 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      color: #8b95a4;
-      font: 700 11px var(--mono);
-      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .window-dots { display: flex; gap: 6px; }
+    .window-dots i { width: 8px; height: 8px; border-radius: 50%; background: #c7cedd; }
+    .window-title { color: var(--muted); font-size: 12px; font-weight: 700; }
+
+    .runtime-head {
+      padding: 22px 2px 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .runtime-head small {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
-    .terminal-dots {
-      display: flex;
-      gap: 6px;
-    }
+    .runtime-head strong { font-size: 18px; }
 
-    .terminal-dots i {
-      width: 7px;
-      aspect-ratio: 1;
-      border-radius: 50%;
-      background: #404753;
-    }
-
-    .terminal-dots i:first-child {
-      background: var(--red);
-    }
-
-    .terminal-dots i:last-child {
-      background: var(--green);
-    }
-
-    .trace {
-      min-height: 400px;
-      padding: 22px;
-      font: 13px/1.75 var(--mono);
-    }
-
-    .trace-line {
-      display: grid;
-      grid-template-columns: 42px 126px 1fr;
-      gap: 12px;
-      padding: 7px 0;
-      opacity: 0;
-      transform: translateY(5px);
-      animation: enter 240ms ease forwards;
-    }
-
-    .trace-seq {
-      color: #586170;
-    }
-
-    .trace-type {
-      color: var(--cyan);
-    }
-
-    .trace-line[data-kind="warn"] .trace-type {
-      color: var(--amber);
-    }
-
-    .trace-line[data-kind="ok"] .trace-type {
+    .status {
+      padding: 6px 9px;
       color: var(--green);
+      background: var(--green-soft);
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 850;
     }
 
-    .trace-line[data-kind="deny"] .trace-type {
-      color: var(--red);
-    }
-
-    .trace-copy {
-      color: #c1c8d2;
-      overflow-wrap: anywhere;
-    }
-
-    @keyframes enter {
-      to {
-        opacity: 1;
-        transform: none;
-      }
-    }
-
-    .governance-grid {
+    .run-meta {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
+      gap: 10px;
     }
 
-    .governance-card {
-      padding: 28px;
-      border-left: 2px solid var(--line-strong);
-      background: linear-gradient(90deg, var(--panel), transparent);
-    }
-
-    .governance-card:nth-child(1) {
-      border-color: var(--cyan);
-    }
-
-    .governance-card:nth-child(2) {
-      border-color: var(--amber);
-    }
-
-    .governance-card:nth-child(3) {
-      border-color: var(--red);
-    }
-
-    .governance-card:nth-child(4) {
-      border-color: var(--green);
-    }
-
-    .governance-card h3 {
-      margin-bottom: 8px;
-      font-size: 22px;
-    }
-
-    .governance-card p {
-      margin-bottom: 0;
-      color: var(--muted);
-    }
-
-    .state-line {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      margin-top: 58px;
+    .meta-box {
+      padding: 13px;
       border: 1px solid var(--line);
+      background: #fafbfe;
+      border-radius: 10px;
     }
 
-    .state {
-      min-height: 122px;
+    .meta-box span { display: block; color: var(--muted); font-size: 11px; }
+    .meta-box strong { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+
+    .event-list {
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .event-item {
+      position: relative;
+      min-height: 54px;
+      padding: 0 0 17px 32px;
+      color: #4f5a70;
+      font-size: 12px;
+    }
+
+    .event-item:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      top: 18px;
+      left: 8px;
+      width: 1px;
+      height: calc(100% - 5px);
+      background: #cfd5e3;
+    }
+
+    .event-item::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 11px;
+      height: 11px;
+      border: 3px solid white;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 0 1px #b9c5ee;
+    }
+
+    .event-item strong { display: block; margin-bottom: 2px; color: var(--ink); font-size: 13px; }
+    .event-item time { float: right; color: #929bb0; }
+
+    .metrics {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .metrics-grid {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
       display: grid;
-      align-content: space-between;
-      padding: 18px;
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .metric {
+      padding: 26px 24px;
       border-right: 1px solid var(--line);
-      background: var(--panel);
     }
 
-    .state:last-child {
-      border-right: 0;
+    .metric:first-child { border-left: 1px solid var(--line); }
+    .metric strong { display: block; font-size: 26px; letter-spacing: -0.04em; }
+    .metric span { color: var(--muted); font-size: 13px; }
+
+    .section { padding: 104px 0; }
+    .section-white { background: var(--surface); }
+
+    .container { width: min(var(--max), calc(100% - 40px)); margin: 0 auto; }
+
+    .section-head {
+      max-width: 680px;
+      margin-bottom: 52px;
     }
 
-    .state span {
-      color: var(--muted);
-      font: 700 10px var(--mono);
-      letter-spacing: 0.05em;
+    .section-head h2 {
+      margin-bottom: 16px;
+      font-size: clamp(34px, 4.4vw, 52px);
+      line-height: 1.1;
+      letter-spacing: -0.045em;
     }
 
-    .state strong {
-      font: 700 12px var(--mono);
-      overflow-wrap: anywhere;
+    .section-head p { margin: 0; color: var(--muted); font-size: 17px; }
+
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
     }
 
-    .state.active {
-      box-shadow: inset 0 -3px 0 var(--amber);
+    .problem-card {
+      padding: 34px;
+      border: 1px solid var(--line);
+      background: var(--surface);
     }
 
-    .state.success {
-      box-shadow: inset 0 -3px 0 var(--green);
+    .problem-card.solution { border-top: 4px solid var(--blue); }
+    .problem-card.question { border-top: 4px solid #a8b1c5; }
+    .problem-card h3 { margin-bottom: 22px; font-size: 21px; }
+
+    .clean-list { margin: 0; padding: 0; list-style: none; }
+    .clean-list li { position: relative; padding: 12px 0 12px 28px; border-top: 1px solid var(--line); color: #505b71; }
+    .clean-list li::before { position: absolute; left: 0; color: var(--blue); font-weight: 850; }
+    .question .clean-list li::before { content: "?"; color: #8a94a8; }
+    .solution .clean-list li::before { content: "✓"; color: var(--green); }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
     }
 
-    .closing {
-      padding: 120px 0 84px;
+    .feature-card {
+      min-height: 240px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      background: #fbfcff;
+      border-radius: 14px;
+    }
+
+    .feature-number {
+      width: 42px;
+      height: 42px;
+      margin-bottom: 30px;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      background: var(--blue-soft);
+      border-radius: 9px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .feature-card h3 { margin-bottom: 11px; font-size: 19px; }
+    .feature-card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .architecture {
+      padding: 36px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      box-shadow: 0 16px 42px rgba(29, 44, 79, 0.06);
+    }
+
+    .arch-row {
+      display: grid;
+      grid-template-columns: 170px 1fr;
+      align-items: stretch;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .arch-row:last-child { border-bottom: 0; }
+
+    .arch-label {
+      padding: 24px 20px;
+      display: flex;
+      align-items: center;
+      color: var(--blue-dark);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-right: 1px solid var(--line);
+    }
+
+    .arch-items {
+      padding: 17px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .arch-item {
+      padding: 14px 12px;
+      display: grid;
+      place-items: center;
+      min-height: 62px;
+      border: 1px solid #d9deea;
+      color: #34405a;
+      background: var(--surface);
+      border-radius: 9px;
       text-align: center;
+      font-size: 12px;
+      font-weight: 700;
     }
 
-    .closing .kicker {
-      margin-bottom: 18px;
+    .arch-note { margin: 18px 0 0; color: var(--muted); font-size: 13px; }
+
+    .flow-grid {
+      display: grid;
+      grid-template-columns: 0.84fr 1.16fr;
+      gap: 42px;
+      align-items: start;
     }
 
-    .closing h2 {
-      max-width: 900px;
-      margin: 0 auto 24px;
+    .flow-copy {
+      position: sticky;
+      top: 100px;
     }
 
-    .closing p {
-      max-width: 660px;
-      margin: 0 auto 32px;
-      color: var(--muted);
-      font-size: 17px;
+    .flow-copy h2 { font-size: clamp(34px, 4vw, 50px); line-height: 1.1; letter-spacing: -0.045em; }
+    .flow-copy p { color: var(--muted); }
+
+    .flow-list { margin: 0; padding: 0; counter-reset: flow; list-style: none; }
+
+    .flow-step {
+      position: relative;
+      padding: 2px 0 34px 78px;
+      counter-increment: flow;
     }
 
-    .closing .actions {
-      justify-content: center;
+    .flow-step:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      left: 26px;
+      top: 50px;
+      width: 1px;
+      height: calc(100% - 28px);
+      background: #cdd4e3;
     }
+
+    .flow-step::after {
+      content: counter(flow, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      background: var(--surface);
+      border: 1px solid #cdd6f4;
+      border-radius: 12px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .flow-step h3 { margin-bottom: 7px; font-size: 18px; }
+    .flow-step p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .mono-layout {
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 24px;
+    }
+
+    .code-card {
+      padding: 30px;
+      color: #dfe7ff;
+      background: #20283a;
+      border-radius: 14px;
+      overflow: auto;
+    }
+
+    .code-card .code-title { margin-bottom: 20px; color: #93a5d8; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; }
+    pre { margin: 0; font: 13px/1.8 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; }
+
+    .folder-notes { display: grid; gap: 12px; }
+
+    .folder-note {
+      padding: 24px;
+      border-left: 4px solid var(--line);
+      background: var(--surface);
+    }
+
+    .folder-note:nth-child(1) { border-color: var(--blue); }
+    .folder-note:nth-child(2) { border-color: var(--green); }
+    .folder-note:nth-child(3) { border-color: var(--orange); }
+    .folder-note strong { display: block; margin-bottom: 4px; }
+    .folder-note p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .stack-panel {
+      padding: 30px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .stack-panel h3 { margin-bottom: 22px; font-size: 19px; }
+    .stack-list { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    .stack-item {
+      padding: 8px 10px;
+      border: 1px solid #d9deea;
+      color: #48536a;
+      background: #fafbfe;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .boundary {
+      padding: 38px;
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 40px;
+      color: white;
+      background: var(--blue);
+      border-radius: 16px;
+    }
+
+    .boundary h2 { margin-bottom: 10px; font-size: 34px; letter-spacing: -0.035em; }
+    .boundary p { margin: 0; color: #dce4ff; }
+    .boundary ul { margin: 0; padding-left: 20px; color: #eef2ff; }
+    .boundary li + li { margin-top: 9px; }
+
+    .cta {
+      padding: 90px 20px;
+      text-align: center;
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+    }
+
+    .cta h2 { margin-bottom: 14px; font-size: clamp(36px, 5vw, 58px); line-height: 1.08; letter-spacing: -0.05em; }
+    .cta p { margin: 0 auto 28px; max-width: 620px; color: var(--muted); font-size: 17px; }
+    .cta .hero-actions { justify-content: center; margin-bottom: 0; }
 
     footer {
-      padding: 28px 0 36px;
+      padding: 30px 0;
+      color: #717b8e;
+      font-size: 13px;
       border-top: 1px solid var(--line);
-      color: var(--muted);
-      font: 12px var(--mono);
     }
 
     .footer-row {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
       display: flex;
+      align-items: center;
       justify-content: space-between;
       gap: 20px;
     }
 
-    .footer-row a:hover {
-      color: var(--text);
-    }
+    .footer-row a { color: var(--blue); font-weight: 700; text-decoration: none; }
+
+    :focus-visible { outline: 3px solid rgba(49, 86, 217, 0.3); outline-offset: 3px; }
 
     @media (max-width: 900px) {
+      .hero { padding-top: 62px; }
       .hero-grid,
-      .section-head,
-      .runtime-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .hero-grid {
-        align-items: start;
-      }
-
-      .status-panel {
-        max-width: 520px;
-      }
-
-      .architecture .arch-card {
-        grid-column: span 6;
-      }
-
-      .skills {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .state-line {
-        grid-template-columns: repeat(3, 1fr);
-      }
-
-      .state:nth-child(3) {
-        border-right: 0;
-      }
-
-      .state:nth-child(-n+3) {
-        border-bottom: 1px solid var(--line);
-      }
+      .flow-grid,
+      .mono-layout { grid-template-columns: 1fr; }
+      .hero-grid { gap: 54px; }
+      .hero-copy { max-width: 740px; }
+      .product-card { max-width: 650px; }
+      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+      .flow-copy { position: static; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+      .metric:nth-child(3) { border-left: 1px solid var(--line); border-top: 1px solid var(--line); }
+      .metric:nth-child(4) { border-top: 1px solid var(--line); }
+      .arch-items { grid-template-columns: repeat(2, 1fr); }
+      .boundary { grid-template-columns: 1fr; }
     }
 
-    @media (max-width: 640px) {
-      .shell {
-        width: min(100% - 28px, 1180px);
-      }
-
-      .nav-links a {
+    @media (max-width: 680px) {
+      .nav { width: min(100% - 28px, var(--max)); }
+      .menu-button { display: grid; place-items: center; }
+      .nav-links {
+        position: absolute;
+        top: 68px;
+        left: 14px;
+        right: 14px;
+        padding: 18px;
         display: none;
-      }
-
-      .hero {
-        min-height: auto;
-        padding-top: 76px;
-      }
-
-      h1 {
-        font-size: clamp(46px, 16vw, 76px);
-      }
-
-      .section {
-        padding: 78px 0;
-      }
-
-      .architecture,
-      .skills,
-      .governance-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .architecture .arch-card {
-        grid-column: auto;
-      }
-
-      .skills {
-        display: grid;
-      }
-
-      .trace-line {
-        grid-template-columns: 34px 1fr;
-      }
-
-      .trace-copy {
-        grid-column: 2;
-      }
-
-      .state-line {
-        grid-template-columns: 1fr;
-      }
-
-      .state {
-        min-height: 94px;
-        border-right: 0;
-        border-bottom: 1px solid var(--line);
-      }
-
-      .state:last-child {
-        border-bottom: 0;
-      }
-
-      .footer-row {
+        align-items: stretch;
         flex-direction: column;
+        gap: 12px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        box-shadow: var(--shadow);
       }
+      .nav-links[data-open="true"] { display: flex; }
+      .nav-links a { padding: 8px; }
+      .container,
+      .hero-grid,
+      .metrics-grid { width: min(100% - 28px, var(--max)); }
+      .hero { padding-top: 52px; }
+      h1 { font-size: 48px; }
+      .section { padding: 76px 0; }
+      .problem-grid,
+      .feature-grid,
+      .stack-grid { grid-template-columns: 1fr; }
+      .feature-card { min-height: auto; }
+      .metrics-grid { grid-template-columns: 1fr 1fr; }
+      .metric { padding: 20px 16px; }
+      .runtime-head { flex-direction: column; }
+      .arch-row { grid-template-columns: 1fr; }
+      .arch-label { border-right: 0; border-bottom: 1px solid var(--line); }
+      .arch-items { grid-template-columns: 1fr; }
+      .architecture,
+      .problem-card,
+      .boundary { padding: 26px; }
+      .footer-row { align-items: flex-start; flex-direction: column; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      html {
-        scroll-behavior: auto;
-      }
-
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: 0.01ms !important; }
     }
   </style>
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
 
-  <header class="topbar">
-    <nav class="shell nav" aria-label="主导航">
-      <a class="brand" href="#top" aria-label="AI Agent Station 首页">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span>AI Agent Station / V2</span>
+  <header class="site-header">
+    <nav class="nav" aria-label="主导航">
+      <a class="brand" href="#top" aria-label="返回首页">
+        <span class="brand-mark">AS</span>
+        <span>AI Agent Station</span>
       </a>
-      <div class="nav-links">
+      <button class="menu-button" type="button" aria-label="展开导航" aria-expanded="false">☰</button>
+      <div class="nav-links" id="nav-links" data-open="false">
+        <a href="#features">核心能力</a>
         <a href="#architecture">架构</a>
-        <a href="#skills">Skills</a>
-        <a href="#runtime">运行轨迹</a>
-        <a href="#governance">治理</a>
-        <a href="https://github.com/wangyijie01/ai-agent-station-v2">GitHub</a>
-        <button class="theme-toggle" type="button" aria-label="切换明暗主题" title="切换主题">◐</button>
+        <a href="#structure">项目结构</a>
+        <a href="#stack">技术栈</a>
+        <a class="nav-github" href="https://github.com/wangyijie01/ai-agent-station-v2">GitHub</a>
       </div>
     </nav>
   </header>
 
   <main id="main">
-    <section class="hero shell" id="top">
-      <div class="eyebrow">Spring AI · DDD · Governed Runtime</div>
-      <h1>FROM DEMO LOOP<br><span class="outline">TO RUNTIME.</span></h1>
+    <section class="hero" id="top">
       <div class="hero-grid">
         <div>
-          <p class="lead">
-            AI Agent Station V2 把原有的分析—执行—监督循环升级为一套
-            <strong>可约束、可恢复、可观测</strong>的 Agent Runtime：
-            用 Skills 管理场景，用状态机管理运行，用代码边界治理每一次工具调用。
-          </p>
-          <div class="actions">
-            <a class="button primary" href="https://github.com/wangyijie01/ai-agent-station-v2">
-              查看后端源码 <span class="arrow" aria-hidden="true">↗</span>
-            </a>
-            <a class="button" href="https://github.com/wangyijie01/ai-agent-station-console">
-              查看前端运行台 <span class="arrow" aria-hidden="true">↗</span>
-            </a>
+          <p class="eyebrow">Governed Agent Runtime</p>
+          <h1>让 Agent<br/>真正可治理</h1>
+          <p class="hero-copy">AI Agent Station 把 Skills、运行状态、工具权限与执行审计放进同一套工程边界，让每一次智能体执行都可追踪、可恢复、可解释。</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="https://github.com/wangyijie01/ai-agent-station-v2">查看完整项目 <span aria-hidden="true">→</span></a>
+            <a class="button button-secondary" href="https://github.com/wangyijie01/ai-agent-station-v2#readme">阅读 README</a>
+          </div>
+          <div class="hero-proof" aria-label="项目特性">
+            <span>前后端单仓库</span>
+            <span>Spring AI 1.0</span>
+            <span>React 18</span>
           </div>
         </div>
-        <aside class="status-panel" aria-label="项目状态摘要">
-          <div class="status-head"><span>Runtime snapshot</span><span class="pulse" aria-label="已验证"></span></div>
-          <div class="metric"><span>Built-in Skills</span><strong>06</strong></div>
-          <div class="metric"><span>Domain tests</span><strong>12</strong></div>
-          <div class="metric"><span>Maven modules</span><strong>07</strong></div>
-          <div class="metric"><span>Tool policy</span><strong>FAIL-CLOSED</strong></div>
-        </aside>
+
+        <div class="product-card" aria-label="Agent Run 运行状态示意">
+          <div class="window-bar">
+            <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="window-title">Agent Runtime / Run Detail</div>
+          </div>
+          <div class="runtime-head">
+            <div>
+              <small>Current task</small>
+              <strong>Payment 服务超时诊断</strong>
+            </div>
+            <span class="status">RUNNING</span>
+          </div>
+          <div class="run-meta">
+            <div class="meta-box"><span>Run ID</span><strong>run_7f32a9</strong></div>
+            <div class="meta-box"><span>Selected Skill</span><strong>log-root-cause</strong></div>
+          </div>
+          <ol class="event-list">
+            <li class="event-item"><time>10:32:04</time><strong>Skill 已选择</strong>匹配日志根因分析场景</li>
+            <li class="event-item"><time>10:32:05</time><strong>工具策略已校验</strong>只读查询通过白名单</li>
+            <li class="event-item"><time>10:32:08</time><strong>正在收集证据</strong>SSE 持续返回执行事件</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics" aria-label="项目概览">
+      <div class="metrics-grid">
+        <div class="metric"><strong>6</strong><span>内置场景 Skills</span></div>
+        <div class="metric"><strong>6</strong><span>Run 生命周期状态</span></div>
+        <div class="metric"><strong>9</strong><span>运行与治理 API</span></div>
+        <div class="metric"><strong>1 repo</strong><span>Backend + Frontend + Docs</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="overview">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Why it matters</p>
+          <h2>重点不在“能调用”，<br/>而在“能管理”</h2>
+          <p>传统 Agent Demo 的执行过程经常停留在黑盒循环。AI Agent Station 把不确定的模型行为，装进清晰、可验证的运行规则中。</p>
+        </div>
+        <div class="problem-grid">
+          <article class="problem-card question">
+            <h3>常见的 Agent 工程问题</h3>
+            <ul class="clean-list">
+              <li>重复请求是否会创建两次任务？</li>
+              <li>中途失败后只能从头开始吗？</li>
+              <li>模型能调用哪些工具，谁来批准？</li>
+              <li>执行过程和错误原因能否追溯？</li>
+            </ul>
+          </article>
+          <article class="problem-card solution">
+            <h3>平台给出的运行边界</h3>
+            <ul class="clean-list">
+              <li>runId、traceId 与客户端幂等键</li>
+              <li>状态机、检查点与恢复执行</li>
+              <li>Skill 白名单、风险分级与授权</li>
+              <li>SSE 事件、质量评估与工具审计</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-white" id="features">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Core capabilities</p>
+          <h2>一套完整的 Agent 运行闭环</h2>
+          <p>从场景路由到工具执行，再到恢复与审计，每个环节都保留明确的工程语义。</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card"><span class="feature-number">01</span><h3>文件型 Skills</h3><p>用 SKILL.md 声明场景、触发词、优先级、工具白名单和工作流约束，业务方法与通用引擎解耦。</p></article>
+          <article class="feature-card"><span class="feature-number">02</span><h3>Run 状态机</h3><p>为每次执行建立稳定身份和合法状态转换，统一管理创建、运行、等待、完成、失败与取消。</p></article>
+          <article class="feature-card"><span class="feature-number">03</span><h3>断点恢复</h3><p>记录阶段摘要、下一步动作和检查点；等待用户补充信息或失败后，可按原 runId 恢复。</p></article>
+          <article class="feature-card"><span class="feature-number">04</span><h3>工具权限治理</h3><p>执行前经过白名单、风险、授权、预算、幂等和熔断判断，降低模型误调用带来的副作用。</p></article>
+          <article class="feature-card"><span class="feature-number">05</span><h3>事件与评估</h3><p>SSE 事件携带严格递增的序号、runId 与 traceId，并支持查询检查点、评估和审计记录。</p></article>
+          <article class="feature-card"><span class="feature-number">06</span><h3>可视化运行台</h3><p>在 React 管理台选择 Skills、设置预算、启动或恢复任务，并实时查看运行时间线与治理结果。</p></article>
+        </div>
       </div>
     </section>
 
     <section class="section" id="architecture">
-      <div class="shell">
+      <div class="container">
         <div class="section-head">
-          <div>
-            <div class="kicker">01 / Architecture</div>
-            <h2>两个控制面，约束一次运行。</h2>
-          </div>
-          <p class="section-intro">
-            Run 控制面管理身份、状态、事件与恢复；Tool 控制面管理模型能否以及如何调用外部能力。
-            模型负责生成候选决策，应用代码负责合法状态转换和副作用授权。
-          </p>
+          <p class="eyebrow">Architecture</p>
+          <h2>从界面到工具，<br/>每层职责清楚</h2>
+          <p>后端沿用 DDD 多模块结构，把运行时能力集中在 Domain 层，并通过治理包装器控制真实工具调用。</p>
         </div>
-        <div class="architecture">
-          <article class="arch-card" data-index="01">
-            <span class="tag">Interface</span>
-            <h3>React 运行台</h3>
-            <p>启动、恢复、取消 Run，展示 SSE 时间线、评估和工具审计。</p>
-          </article>
-          <article class="arch-card" data-index="02">
-            <span class="tag">Protocol</span>
-            <h3>HTTP / SSE</h3>
-            <p>统一返回 runId、traceId、sequence 和运行状态。</p>
-          </article>
-          <article class="arch-card" data-index="03">
-            <span class="tag">Control plane</span>
-            <h3>Run Runtime</h3>
-            <p>状态机、幂等、检查点、恢复、取消与质量评估。</p>
-          </article>
-          <article class="arch-card" data-index="04">
-            <span class="tag">Routing</span>
-            <h3>Skill Registry</h3>
-            <p>文件型能力声明、校验、版本与可解释路由。</p>
-          </article>
-          <article class="arch-card" data-index="05">
-            <span class="tag">Execution</span>
-            <h3>Auto · Flow · Fixed</h3>
-            <p>保留三类执行策略，并把结构化决策、恢复上下文和运行事件注入统一生命周期。</p>
-          </article>
-          <article class="arch-card" data-index="06">
-            <span class="tag">Safety boundary</span>
-            <h3>Governed Tool Callback → MCP</h3>
-            <p>调用前执行 Skill 白名单、风险分级、人工授权、预算、幂等、重试与熔断；调用后写入脱敏审计。</p>
-          </article>
+        <div class="architecture" role="img" aria-label="AI Agent Station 分层架构">
+          <div class="arch-row"><div class="arch-label">Experience</div><div class="arch-items"><div class="arch-item">React 管理台</div><div class="arch-item">Agent 运行台</div><div class="arch-item">Flow 编辑器</div><div class="arch-item">HTTP / SSE</div></div></div>
+          <div class="arch-row"><div class="arch-label">Application</div><div class="arch-items"><div class="arch-item">Controller</div><div class="arch-item">Admin API</div><div class="arch-item">Job / Listener</div><div class="arch-item">统一响应</div></div></div>
+          <div class="arch-row"><div class="arch-label">Domain</div><div class="arch-items"><div class="arch-item">Skill Router</div><div class="arch-item">Run Runtime</div><div class="arch-item">Execute Strategy</div><div class="arch-item">Tool Governance</div></div></div>
+          <div class="arch-row"><div class="arch-label">AI & Data</div><div class="arch-items"><div class="arch-item">Spring AI</div><div class="arch-item">MCP Tools</div><div class="arch-item">MySQL / Redis</div><div class="arch-item">PGVector</div></div></div>
         </div>
+        <p class="arch-note">治理层位于模型决策和真实工具之间：只有通过运行上下文、Skill 白名单和风险策略的调用才会继续执行。</p>
       </div>
     </section>
 
-    <section class="section" id="skills">
-      <div class="shell">
-        <div class="section-head">
-          <div>
-            <div class="kicker">02 / File-based Skills</div>
-            <h2>场景方法论，不再写死在节点里。</h2>
-          </div>
-          <p class="section-intro">
-            每个 Skill 在 SKILL.md 中声明触发词、场景、允许工具、风险和优先级。
-            新增场景无需修改执行引擎，工具集合默认最小化。
-          </p>
+    <section class="section section-white">
+      <div class="container flow-grid">
+        <div class="flow-copy">
+          <p class="eyebrow">Runtime flow</p>
+          <h2>一次 Run，<br/>五个清晰阶段</h2>
+          <p>运行过程不是不可见的模型循环，而是一条可以查询、恢复和审计的业务链路。</p>
+          <a class="button button-secondary" href="https://github.com/wangyijie01/ai-agent-station-v2/blob/main/docs/agent-v2-design.md">查看设计文档</a>
         </div>
-        <div class="skills">
-          <article class="skill-card"><span class="tag">S-01 · READ ONLY</span><h3>日志根因分析</h3><p>围绕时间窗、TraceId、错误码和异常堆栈形成证据链。</p></article>
-          <article class="skill-card"><span class="tag">S-02 · READ ONLY</span><h3>监控指标诊断</h3><p>关联错误率、延迟、吞吐和资源曲线，定位异常拐点。</p></article>
-          <article class="skill-card"><span class="tag">S-03 · GROUNDED</span><h3>知识证据问答</h3><p>先检索可信依据，再组织带来源边界的回答。</p></article>
-          <article class="skill-card"><span class="tag">S-04 · CONTROLLED</span><h3>故障应急响应</h3><p>按影响、止损、定位、恢复和复盘组织线上处置。</p></article>
-          <article class="skill-card"><span class="tag">S-05 · CHECKLIST</span><h3>发布巡检</h3><p>覆盖发布前基线与发布后健康度、日志和回滚条件。</p></article>
-          <article class="skill-card"><span class="tag">S-06 · READ ONLY</span><h3>SQL 性能诊断</h3><p>从执行计划、索引、锁等待和数据分布解释性能瓶颈。</p></article>
-        </div>
+        <ol class="flow-list">
+          <li class="flow-step"><h3>接收任务与幂等检查</h3><p>校验请求参数，使用 sessionId 与 idempotencyKey 查找已有 Run，防止重复执行。</p></li>
+          <li class="flow-step"><h3>选择 Skills</h3><p>结合显式选择和任务语义进行路由，汇总本轮允许使用的工具集合。</p></li>
+          <li class="flow-step"><h3>创建运行上下文</h3><p>生成 runId、traceId 和初始事件，将状态从 CREATED 转换为 RUNNING。</p></li>
+          <li class="flow-step"><h3>执行与治理</h3><p>模型产生决策后，工具调用依次经过风险分级、授权、预算、幂等和熔断检查。</p></li>
+          <li class="flow-step"><h3>完成、等待或恢复</h3><p>持续写入事件和检查点，任务可以完成、取消，或在补充信息后继续运行。</p></li>
+        </ol>
       </div>
     </section>
 
-    <section class="section" id="runtime">
-      <div class="shell">
+    <section class="section" id="structure">
+      <div class="container">
         <div class="section-head">
-          <div>
-            <div class="kicker">03 / Event trace</div>
-            <h2>每一步发生了什么，都能回放。</h2>
-          </div>
-          <p class="section-intro">
-            选择场景查看一条典型运行轨迹。事件在单个 Run 内严格递增，可用于 SSE 排序、断线重放、链路追踪和事后审计。
-          </p>
+          <p class="eyebrow">Monorepo</p>
+          <h2>相关代码，终于在一个项目里</h2>
+          <p>后端、前端和项目介绍页共用一个仓库、一个 README 和一条发布入口。</p>
         </div>
-        <div class="runtime-grid">
-          <div class="scenario-list" role="tablist" aria-label="运行场景">
-            <button class="scenario-button" type="button" role="tab" aria-selected="true" data-scenario="incident">
-              <span class="scenario-number">01</span><span class="scenario-title">线上故障诊断</span><span class="scenario-state">SUCCEEDED</span>
-            </button>
-            <button class="scenario-button" type="button" role="tab" aria-selected="false" data-scenario="waiting">
-              <span class="scenario-number">02</span><span class="scenario-title">缺少必要信息</span><span class="scenario-state">WAITING</span>
-            </button>
-            <button class="scenario-button" type="button" role="tab" aria-selected="false" data-scenario="blocked">
-              <span class="scenario-number">03</span><span class="scenario-title">高风险工具拦截</span><span class="scenario-state">DENIED</span>
-            </button>
+        <div class="mono-layout">
+          <div class="code-card">
+            <div class="code-title">AI-AGENT-STATION-V2 /</div>
+            <pre>├── backend/
+│   ├── ai-agent-station-study-api/
+│   ├── ai-agent-station-study-app/
+│   ├── ai-agent-station-study-domain/
+│   ├── ai-agent-station-study-trigger/
+│   ├── ai-agent-station-study-infrastructure/
+│   └── ai-agent-station-study-types/
+├── frontend/
+│   ├── src/
+│   └── package.json
+├── docs/
+│   ├── index.html
+│   ├── agent-v2-design.md
+│   └── sql/
+├── .github/workflows/pages.yml
+└── README.md</pre>
           </div>
-          <div class="terminal" role="tabpanel" aria-live="polite">
-            <div class="terminal-bar">
-              <span>agent-run.events</span>
-              <span class="terminal-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-            </div>
-            <div class="trace" id="trace"></div>
+          <div class="folder-notes">
+            <div class="folder-note"><strong>backend</strong><p>Spring AI 多模块后端，包含管理接口、Agent 编排、Skills、Run Runtime 与工具治理。</p></div>
+            <div class="folder-note"><strong>frontend</strong><p>React 管理台和可视化运行台，负责配置管理、工作流编辑与 SSE 事件展示。</p></div>
+            <div class="folder-note"><strong>docs</strong><p>在线项目介绍、完整设计文档、运行时 SQL 和 GitHub Pages 发布内容。</p></div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="section" id="governance">
-      <div class="shell">
+    <section class="section section-white" id="stack">
+      <div class="container">
         <div class="section-head">
-          <div>
-            <div class="kicker">04 / Tool governance</div>
-            <h2>Prompt 是建议，代码才是边界。</h2>
-          </div>
-          <p class="section-intro">
-            工具治理位于真实 ToolCallback 外层。即使模型被提示注入或忽略规则，副作用仍必须经过应用侧的 fail-closed 校验。
-          </p>
+          <p class="eyebrow">Technology</p>
+          <h2>围绕 Agent 工程化选型</h2>
+          <p>技术栈覆盖模型编排、业务持久化、向量检索、运行可观测和管理界面。</p>
         </div>
-        <div class="governance-grid">
-          <article class="governance-card"><h3>最小权限</h3><p>工具名必须命中当前 Skills 合并后的 allowlist；无 Skill 命中时默认不开放工具。</p></article>
-          <article class="governance-card"><h3>预算与幂等</h3><p>限制单次 Run 的工具调用总量，并用 runId、工具名和输入摘要避免重复副作用。</p></article>
-          <article class="governance-card"><h3>高风险授权</h3><p>写入、删除、发布、回滚等操作必须具备可信授权；本地请求字段只用于演示。</p></article>
-          <article class="governance-card"><h3>审计与韧性</h3><p>记录脱敏输入、决策、耗时、重试和错误；只读调用支持有限重试与熔断保护。</p></article>
-        </div>
-        <div class="state-line" aria-label="Agent 运行状态机">
-          <div class="state"><span>00</span><strong>CREATED</strong></div>
-          <div class="state active"><span>01</span><strong>RUNNING</strong></div>
-          <div class="state"><span>02</span><strong>WAITING_USER_INPUT</strong></div>
-          <div class="state success"><span>03</span><strong>SUCCEEDED</strong></div>
-          <div class="state"><span>04</span><strong>FAILED</strong></div>
-          <div class="state"><span>05</span><strong>CANCELED</strong></div>
+        <div class="stack-grid">
+          <article class="stack-panel"><h3>Backend & AI</h3><div class="stack-list"><span class="stack-item">Java 17</span><span class="stack-item">Spring Boot 3.4</span><span class="stack-item">Spring AI 1.0</span><span class="stack-item">MyBatis</span><span class="stack-item">MCP</span><span class="stack-item">Micrometer</span><span class="stack-item">Prometheus</span></div></article>
+          <article class="stack-panel"><h3>Frontend & Data</h3><div class="stack-list"><span class="stack-item">React 18</span><span class="stack-item">TypeScript</span><span class="stack-item">Rsbuild</span><span class="stack-item">Semi UI</span><span class="stack-item">FlowGram</span><span class="stack-item">MySQL</span><span class="stack-item">PGVector</span><span class="stack-item">Redis</span></div></article>
         </div>
       </div>
     </section>
 
-    <section class="closing shell">
-      <div class="kicker">Built to explain. Built to evolve.</div>
-      <h2>先验证领域语义，再把 Runtime 推向生产。</h2>
-      <p>
-        当前 V2 用有界内存实现验证状态、事件和治理模型，并给出 MySQL 表结构。
-        下一步是 Repository 持久化、Redis 幂等、队列 Worker 与企业审批票据。
-      </p>
-      <div class="actions">
-        <a class="button primary" href="https://github.com/wangyijie01/ai-agent-station-v2/blob/main/docs/agent-v2-design.md">阅读完整设计 <span class="arrow" aria-hidden="true">↗</span></a>
-        <a class="button" href="https://github.com/wangyijie01">GitHub @wangyijie01</a>
+    <section class="section">
+      <div class="container">
+        <div class="boundary">
+          <div><p class="eyebrow" style="color:#dce4ff">Engineering honesty</p><h2>明确写出边界</h2><p>一个可信的作品集项目，不应该把演示实现包装成已经完成的生产系统。</p></div>
+          <ul>
+            <li>当前 Run、事件和检查点使用有界内存实现。</li>
+            <li>生产持久化 SQL 已设计，Repository 接入仍在 Roadmap。</li>
+            <li>企业环境还需补充 RBAC、审批票据与分布式状态协调。</li>
+            <li>工具能力依赖实际 MCP 服务，Skill 只定义调用边界。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <h2>从 README 开始了解项目</h2>
+      <p>查看完整功能、架构图、快速启动、API、测试命令和 Roadmap。</p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="https://github.com/wangyijie01/ai-agent-station-v2">打开 GitHub 仓库</a>
+        <a class="button button-secondary" href="https://github.com/wangyijie01/ai-agent-station-v2/issues">提交 Issue</a>
       </div>
     </section>
   </main>
 
   <footer>
-    <div class="shell footer-row">
-      <span>AI Agent Station V2 · Java 17 / Spring Boot 3.4 / Spring AI</span>
-      <span><a href="https://github.com/KnowledgePlanet/ai-agent-station-study">Upstream project</a> · Extended by <a href="https://github.com/wangyijie01">wangyijie01</a></span>
+    <div class="footer-row">
+      <span>© <span id="year">2026</span> AI Agent Station · Built by wangyijie01</span>
+      <span><a href="https://github.com/wangyijie01/ai-agent-station-v2">Source on GitHub</a></span>
     </div>
   </footer>
 
   <script>
-    (function () {
-      var root = document.documentElement;
-      var toggle = document.querySelector(".theme-toggle");
-      var storedTheme = localStorage.getItem("agent-station-theme");
-      if (storedTheme === "light" || storedTheme === "dark") {
-        root.dataset.theme = storedTheme;
-      }
+    const menuButton = document.querySelector('.menu-button');
+    const navLinks = document.querySelector('#nav-links');
 
-      toggle.addEventListener("click", function () {
-        var next = root.dataset.theme === "dark" ? "light" : "dark";
-        root.dataset.theme = next;
-        localStorage.setItem("agent-station-theme", next);
+    menuButton?.addEventListener('click', () => {
+      const isOpen = navLinks.dataset.open === 'true';
+      navLinks.dataset.open = String(!isOpen);
+      menuButton.setAttribute('aria-expanded', String(!isOpen));
+    });
+
+    navLinks?.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        navLinks.dataset.open = 'false';
+        menuButton?.setAttribute('aria-expanded', 'false');
       });
+    });
 
-      var scenarios = {
-        incident: [
-          ["001", "RUN_CREATED", "runId=run_a71f · traceId=tr_90c2", "normal"],
-          ["002", "SKILL_ROUTED", "log-root-cause + monitoring-diagnosis · trigger matched", "normal"],
-          ["003", "ANALYSIS", "scope complete · service=payment · window=21:00—21:30", "normal"],
-          ["004", "TOOL_ALLOWED", "query_metrics · READ_ONLY · budget=1/8", "ok"],
-          ["005", "TOOL_ALLOWED", "search_logs · READ_ONLY · budget=2/8", "ok"],
-          ["006", "SUPERVISION", "evidence linked · confidence=0.86", "normal"],
-          ["007", "SUCCEEDED", "root cause: downstream pool exhaustion after release", "ok"]
-        ],
-        waiting: [
-          ["001", "RUN_CREATED", "idempotency key accepted", "normal"],
-          ["002", "SKILL_ROUTED", "log-root-cause · explicit request", "normal"],
-          ["003", "ANALYSIS", "missing environment and time window", "warn"],
-          ["004", "CHECKPOINT", "stage=analysis · next=collect_context", "normal"],
-          ["005", "WAITING_INPUT", "请补充环境、时间范围或 TraceId", "warn"],
-          ["006", "RESUMABLE", "resume with the same runId and new evidence", "ok"]
-        ],
-        blocked: [
-          ["001", "RUN_CREATED", "tool budget=4", "normal"],
-          ["002", "SKILL_ROUTED", "incident-response", "normal"],
-          ["003", "MODEL_REQUEST", "restart_service(service=payment)", "warn"],
-          ["004", "RISK_CLASSIFIED", "restart_service · HIGH", "warn"],
-          ["005", "TOOL_DENIED", "missing trusted approval · fail-closed", "deny"],
-          ["006", "AUDIT_WRITTEN", "input redacted · sha256 recorded", "ok"]
-        ]
-      };
-
-      var trace = document.getElementById("trace");
-      var buttons = document.querySelectorAll(".scenario-button");
-
-      function render(name) {
-        trace.innerHTML = "";
-        scenarios[name].forEach(function (item, index) {
-          var line = document.createElement("div");
-          line.className = "trace-line";
-          line.dataset.kind = item[3];
-          line.style.animationDelay = String(index * 55) + "ms";
-
-          var seq = document.createElement("span");
-          seq.className = "trace-seq";
-          seq.textContent = item[0];
-
-          var type = document.createElement("span");
-          type.className = "trace-type";
-          type.textContent = item[1];
-
-          var copy = document.createElement("span");
-          copy.className = "trace-copy";
-          copy.textContent = item[2];
-
-          line.appendChild(seq);
-          line.appendChild(type);
-          line.appendChild(copy);
-          trace.appendChild(line);
-        });
-      }
-
-      buttons.forEach(function (button) {
-        button.addEventListener("click", function () {
-          buttons.forEach(function (item) {
-            item.setAttribute("aria-selected", "false");
-          });
-          button.setAttribute("aria-selected", "true");
-          render(button.dataset.scenario);
-        });
-      });
-
-      render("incident");
-    }());
+    document.querySelector('#year').textContent = String(new Date().getFullYear());
   </script>
 </body>
 </html>
