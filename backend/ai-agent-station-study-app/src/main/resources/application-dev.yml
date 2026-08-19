@@ -1,6 +1,27 @@
 server:
   port: 8099
 
+ai:
+  ops:
+    supervision:
+      enabled: ${OPS_SUPERVISION_ENABLED:true}
+      scheduler-delay-ms: ${OPS_SCHEDULER_DELAY_MS:10000}
+      targets:
+        - service-id: agent-station-local
+          service-name: JavaOps Agent
+          environment: local
+          base-url: ${OPS_SELF_BASE_URL:http://127.0.0.1:8099}
+          health-path: /actuator/health
+          agent-id: ${OPS_DEFAULT_AGENT_ID:3}
+          interval-seconds: 30
+          timeout-ms: 3000
+          failure-threshold: 3
+          slow-threshold-ms: 1500
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+
 # Agent 异步任务线程池
 thread:
   pool:

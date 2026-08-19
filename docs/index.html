@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="AI Agent Station：面向复杂任务的可治理 AI Agent 平台，统一管理 Skills、Run 状态、工具权限、SSE 事件与运行审计。" />
+  <meta name="description" content="JavaOps Agent：面向传统 Java 服务的 AI Agent 智能运维分析平台，主动探测异常并联动日志、监控与知识库完成根因分析。" />
   <meta name="theme-color" content="#f6f7fb" />
-  <meta property="og:title" content="AI Agent Station" />
-  <meta property="og:description" content="让 Agent 从会调用工具的 Demo，进入可管理、可恢复、可审计的工程边界。" />
+  <meta property="og:title" content="JavaOps Agent · AI Agent 智能运维分析平台" />
+  <meta property="og:description" content="让 Agent 主动监督传统 Java 服务：发现异常、聚合事件、检索证据、调用工具并输出可追踪的根因分析。" />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://wangyijie01.github.io/ai-agent-station-v2/assets/og.png" />
+  <meta property="og:image" content="https://wangyijie01.github.io/ai-agent-station-v2/assets/og-javaops.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <title>AI Agent Station · 可治理智能体平台</title>
+  <title>JavaOps Agent · Java 服务智能运维分析平台</title>
   <style>
     :root {
       --paper: #f6f7fb;
@@ -737,7 +737,7 @@
     <nav class="nav" aria-label="主导航">
       <a class="brand" href="#top" aria-label="返回首页">
         <span class="brand-mark">AS</span>
-        <span>AI Agent Station</span>
+        <span>JavaOps Agent</span>
       </a>
       <button class="menu-button" type="button" aria-label="展开导航" aria-expanded="false">☰</button>
       <div class="nav-links" id="nav-links" data-open="false">
@@ -754,40 +754,40 @@
     <section class="hero" id="top">
       <div class="hero-grid">
         <div>
-          <p class="eyebrow">Governed Agent Runtime</p>
-          <h1>让 Agent<br/>真正可治理</h1>
-          <p class="hero-copy">AI Agent Station 把 Skills、运行状态、工具权限与执行审计放进同一套工程边界，让每一次智能体执行都可追踪、可恢复、可解释。</p>
+          <p class="eyebrow">AI-powered Operations for Java Services</p>
+          <h1>让 Agent 主动监督<br/>传统 Java 服务</h1>
+          <p class="hero-copy">JavaOps Agent 主动探测服务健康状态，把连续异常聚合为运维事件，再联动日志、监控与知识库工具，输出可追踪的证据链、可能根因和处置建议。</p>
           <div class="hero-actions">
             <a class="button button-primary" href="https://github.com/wangyijie01/ai-agent-station-v2">查看完整项目 <span aria-hidden="true">→</span></a>
             <a class="button button-secondary" href="https://github.com/wangyijie01/ai-agent-station-v2#readme">阅读 README</a>
           </div>
           <div class="hero-proof" aria-label="项目特性">
-            <span>前后端单仓库</span>
-            <span>Spring AI 1.0</span>
-            <span>React 18</span>
+            <span>Java 服务主动探测</span>
+            <span>日志 / 监控 Agent</span>
+            <span>可恢复与可审计</span>
           </div>
         </div>
 
-        <div class="product-card" aria-label="Agent Run 运行状态示意">
+        <div class="product-card" aria-label="Java 服务监督状态示意">
           <div class="window-bar">
             <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
-            <div class="window-title">Agent Runtime / Run Detail</div>
+            <div class="window-title">Java Service Supervision / Incident</div>
           </div>
           <div class="runtime-head">
             <div>
-              <small>Current task</small>
-              <strong>Payment 服务超时诊断</strong>
+              <small>Supervised service</small>
+              <strong>Payment Service · production</strong>
             </div>
-            <span class="status">RUNNING</span>
+            <span class="status" style="color:#b84a27;background:#fff0e9">DEGRADED</span>
           </div>
           <div class="run-meta">
-            <div class="meta-box"><span>Run ID</span><strong>run_7f32a9</strong></div>
-            <div class="meta-box"><span>Selected Skill</span><strong>log-root-cause</strong></div>
+            <div class="meta-box"><span>Incident ID</span><strong>inc_7f32a9</strong></div>
+            <div class="meta-box"><span>Failure threshold</span><strong>3 / 3</strong></div>
           </div>
           <ol class="event-list">
-            <li class="event-item"><time>10:32:04</time><strong>Skill 已选择</strong>匹配日志根因分析场景</li>
-            <li class="event-item"><time>10:32:05</time><strong>工具策略已校验</strong>只读查询通过白名单</li>
-            <li class="event-item"><time>10:32:08</time><strong>正在收集证据</strong>SSE 持续返回执行事件</li>
+            <li class="event-item"><time>10:32:04</time><strong>连续异常达到阈值</strong>健康探测延迟 2380ms</li>
+            <li class="event-item"><time>10:32:05</time><strong>事件已聚合</strong>关联 monitoring 与 log Skills</li>
+            <li class="event-item"><time>10:32:08</time><strong>Agent 正在收集证据</strong>查询指标、日志与 Trace</li>
           </ol>
         </div>
       </div>
@@ -795,10 +795,10 @@
 
     <section class="metrics" aria-label="项目概览">
       <div class="metrics-grid">
+        <div class="metric"><strong>11</strong><span>运维监督 API</span></div>
         <div class="metric"><strong>6</strong><span>内置场景 Skills</span></div>
-        <div class="metric"><strong>6</strong><span>Run 生命周期状态</span></div>
-        <div class="metric"><strong>9</strong><span>运行与治理 API</span></div>
-        <div class="metric"><strong>1 repo</strong><span>Backend + Frontend + Docs</span></div>
+        <div class="metric"><strong>19</strong><span>确定性领域测试</span></div>
+        <div class="metric"><strong>3</strong><span>Auto / Flow / Fixed</span></div>
       </div>
     </section>
 
@@ -806,26 +806,26 @@
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">Why it matters</p>
-          <h2>重点不在“能调用”，<br/>而在“能管理”</h2>
-          <p>传统 Agent Demo 的执行过程经常停留在黑盒循环。AI Agent Station 把不确定的模型行为，装进清晰、可验证的运行规则中。</p>
+          <h2>不是再做一个聊天框，<br/>而是让 Agent 处理运维任务</h2>
+          <p>平台从 Java 服务异常出发，先形成事件与证据上下文，再按场景装配 Agent；运行状态和工具治理用于保证分析过程可靠落地。</p>
         </div>
         <div class="problem-grid">
           <article class="problem-card question">
-            <h3>常见的 Agent 工程问题</h3>
+            <h3>传统 Java 运维的常见问题</h3>
             <ul class="clean-list">
-              <li>重复请求是否会创建两次任务？</li>
-              <li>中途失败后只能从头开始吗？</li>
-              <li>模型能调用哪些工具，谁来批准？</li>
-              <li>执行过程和错误原因能否追溯？</li>
+              <li>服务异常依赖人工发现和切换多个平台</li>
+              <li>日志、指标、Trace 与知识文档彼此割裂</li>
+              <li>不同服务重复开发独立分析流程</li>
+              <li>模型结论缺少证据链和执行边界</li>
             </ul>
           </article>
           <article class="problem-card solution">
-            <h3>平台给出的运行边界</h3>
+            <h3>平台提供的监督闭环</h3>
             <ul class="clean-list">
-              <li>runId、traceId 与客户端幂等键</li>
-              <li>状态机、检查点与恢复执行</li>
-              <li>Skill 白名单、风险分级与授权</li>
-              <li>SSE 事件、质量评估与工具审计</li>
+              <li>主动探测、失败抑制与事件去重</li>
+              <li>日志 / 监控 Skills 与动态 Agent 装配</li>
+              <li>RAG 知识增强与受治理 MCP 工具</li>
+              <li>Run 状态、恢复、SSE 与审计</li>
             </ul>
           </article>
         </div>
@@ -836,16 +836,16 @@
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">Core capabilities</p>
-          <h2>一套完整的 Agent 运行闭环</h2>
-          <p>从场景路由到工具执行，再到恢复与审计，每个环节都保留明确的工程语义。</p>
+          <h2>一套完整的 Java 智能运维闭环</h2>
+          <p>从服务监督到证据检索，再到 Agent 分析、处置建议和恢复确认，每个环节都保留明确的工程语义。</p>
         </div>
         <div class="feature-grid">
-          <article class="feature-card"><span class="feature-number">01</span><h3>文件型 Skills</h3><p>用 SKILL.md 声明场景、触发词、优先级、工具白名单和工作流约束，业务方法与通用引擎解耦。</p></article>
-          <article class="feature-card"><span class="feature-number">02</span><h3>Run 状态机</h3><p>为每次执行建立稳定身份和合法状态转换，统一管理创建、运行、等待、完成、失败与取消。</p></article>
-          <article class="feature-card"><span class="feature-number">03</span><h3>断点恢复</h3><p>记录阶段摘要、下一步动作和检查点；等待用户补充信息或失败后，可按原 runId 恢复。</p></article>
+          <article class="feature-card"><span class="feature-number">01</span><h3>Java 服务主动监督</h3><p>探测 Actuator 健康端点，通过超时、慢响应和连续失败阈值减少抖动告警，并自动识别恢复。</p></article>
+          <article class="feature-card"><span class="feature-number">02</span><h3>事件聚合与去重</h3><p>按服务维护活跃事件，累计异常次数和最近证据，支持确认、人工关闭与恢复自动关闭。</p></article>
+          <article class="feature-card"><span class="feature-number">03</span><h3>动态 Agent 装配</h3><p>按场景组合 Model、Prompt、Advisor、RAG、Skills 和 MCP，共用 Auto、Flow、Fixed 执行引擎。</p></article>
           <article class="feature-card"><span class="feature-number">04</span><h3>工具权限治理</h3><p>执行前经过白名单、风险、授权、预算、幂等和熔断判断，降低模型误调用带来的副作用。</p></article>
           <article class="feature-card"><span class="feature-number">05</span><h3>事件与评估</h3><p>SSE 事件携带严格递增的序号、runId 与 traceId，并支持查询检查点、评估和审计记录。</p></article>
-          <article class="feature-card"><span class="feature-number">06</span><h3>可视化运行台</h3><p>在 React 管理台选择 Skills、设置预算、启动或恢复任务，并实时查看运行时间线与治理结果。</p></article>
+          <article class="feature-card"><span class="feature-number">06</span><h3>双工作台</h3><p>在 React 管理台查看服务快照与事件，一键触发分析；再通过 Agent 运行台查看 SSE 时间线和治理结果。</p></article>
         </div>
       </div>
     </section>
@@ -857,30 +857,30 @@
           <h2>从界面到工具，<br/>每层职责清楚</h2>
           <p>后端沿用 DDD 多模块结构，把运行时能力集中在 Domain 层，并通过治理包装器控制真实工具调用。</p>
         </div>
-        <div class="architecture" role="img" aria-label="AI Agent Station 分层架构">
-          <div class="arch-row"><div class="arch-label">Experience</div><div class="arch-items"><div class="arch-item">React 管理台</div><div class="arch-item">Agent 运行台</div><div class="arch-item">Flow 编辑器</div><div class="arch-item">HTTP / SSE</div></div></div>
-          <div class="arch-row"><div class="arch-label">Application</div><div class="arch-items"><div class="arch-item">Controller</div><div class="arch-item">Admin API</div><div class="arch-item">Job / Listener</div><div class="arch-item">统一响应</div></div></div>
-          <div class="arch-row"><div class="arch-label">Domain</div><div class="arch-items"><div class="arch-item">Skill Router</div><div class="arch-item">Run Runtime</div><div class="arch-item">Execute Strategy</div><div class="arch-item">Tool Governance</div></div></div>
+        <div class="architecture" role="img" aria-label="JavaOps Agent 分层架构">
+          <div class="arch-row"><div class="arch-label">Experience</div><div class="arch-items"><div class="arch-item">Java 服务监督</div><div class="arch-item">Agent 运行台</div><div class="arch-item">Flow 编辑器</div><div class="arch-item">HTTP / SSE</div></div></div>
+          <div class="arch-row"><div class="arch-label">Application</div><div class="arch-items"><div class="arch-item">Ops API</div><div class="arch-item">Agent API</div><div class="arch-item">Scheduled Probe</div><div class="arch-item">Trace / Error Contract</div></div></div>
+          <div class="arch-row"><div class="arch-label">Domain</div><div class="arch-items"><div class="arch-item">Service Supervision</div><div class="arch-item">Incident Lifecycle</div><div class="arch-item">Skill / Run Runtime</div><div class="arch-item">Tool Governance</div></div></div>
           <div class="arch-row"><div class="arch-label">AI & Data</div><div class="arch-items"><div class="arch-item">Spring AI</div><div class="arch-item">MCP Tools</div><div class="arch-item">MySQL / Redis</div><div class="arch-item">PGVector</div></div></div>
         </div>
-        <p class="arch-note">治理层位于模型决策和真实工具之间：只有通过运行上下文、Skill 白名单和风险策略的调用才会继续执行。</p>
+        <p class="arch-note">业务层先把服务异常转为可处理事件；Agent 层补充日志、指标和知识证据；治理层位于模型决策与真实工具之间，阻止越权副作用。</p>
       </div>
     </section>
 
     <section class="section section-white">
       <div class="container flow-grid">
         <div class="flow-copy">
-          <p class="eyebrow">Runtime flow</p>
-          <h2>一次 Run，<br/>五个清晰阶段</h2>
-          <p>运行过程不是不可见的模型循环，而是一条可以查询、恢复和审计的业务链路。</p>
-          <a class="button button-secondary" href="https://github.com/wangyijie01/ai-agent-station-v2/blob/main/docs/agent-v2-design.md">查看设计文档</a>
+          <p class="eyebrow">Operations flow</p>
+          <h2>一次异常，<br/>五个闭环阶段</h2>
+          <p>从主动发现到恢复关闭，不依赖用户先知道应该问 Agent 什么。</p>
+          <a class="button button-secondary" href="https://github.com/wangyijie01/ai-agent-station-v2/blob/main/docs/ops-supervision.md">查看监督设计</a>
         </div>
         <ol class="flow-list">
-          <li class="flow-step"><h3>接收任务与幂等检查</h3><p>校验请求参数，使用 sessionId 与 idempotencyKey 查找已有 Run，防止重复执行。</p></li>
-          <li class="flow-step"><h3>选择 Skills</h3><p>结合显式选择和任务语义进行路由，汇总本轮允许使用的工具集合。</p></li>
-          <li class="flow-step"><h3>创建运行上下文</h3><p>生成 runId、traceId 和初始事件，将状态从 CREATED 转换为 RUNNING。</p></li>
-          <li class="flow-step"><h3>执行与治理</h3><p>模型产生决策后，工具调用依次经过风险分级、授权、预算、幂等和熔断检查。</p></li>
-          <li class="flow-step"><h3>完成、等待或恢复</h3><p>持续写入事件和检查点，任务可以完成、取消，或在补充信息后继续运行。</p></li>
+          <li class="flow-step"><h3>主动探测服务</h3><p>按目标配置探测 Actuator，记录状态、HTTP 响应、延迟与安全截断后的证据。</p></li>
+          <li class="flow-step"><h3>抑制抖动并聚合事件</h3><p>连续失败达到阈值才创建事件，同一服务的重复异常累积到已有活跃事件。</p></li>
+          <li class="flow-step"><h3>构建 Agent 分析上下文</h3><p>固定事实、环境、事件级别与探测证据，并路由日志和监控 Skills。</p></li>
+          <li class="flow-step"><h3>检索证据与受控执行</h3><p>Agent 通过 MCP 查询指标、日志和 Trace，所有调用经过白名单、风险、预算和审计。</p></li>
+          <li class="flow-step"><h3>输出结论并确认恢复</h3><p>返回影响范围、根因、止损与验证步骤；服务恢复 UP 后自动关闭对应事件。</p></li>
         </ol>
       </div>
     </section>
@@ -913,9 +913,9 @@
 └── README.md</pre>
           </div>
           <div class="folder-notes">
-            <div class="folder-note"><strong>backend</strong><p>Spring AI 多模块后端，包含管理接口、Agent 编排、Skills、Run Runtime 与工具治理。</p></div>
-            <div class="folder-note"><strong>frontend</strong><p>React 管理台和可视化运行台，负责配置管理、工作流编辑与 SSE 事件展示。</p></div>
-            <div class="folder-note"><strong>docs</strong><p>在线项目介绍、完整设计文档、运行时 SQL 和 GitHub Pages 发布内容。</p></div>
+            <div class="folder-note"><strong>backend</strong><p>Spring AI 多模块后端，包含 Java 服务监督、Agent 动态装配、Skills、Run Runtime 与工具治理。</p></div>
+            <div class="folder-note"><strong>frontend</strong><p>React 管理台包含 Java 服务监督与 Agent 运行台，展示健康快照、事件和 SSE 时间线。</p></div>
+            <div class="folder-note"><strong>docs</strong><p>在线项目介绍、运维与 Runtime 设计文档、持久化 SQL 和 GitHub Pages 发布内容。</p></div>
           </div>
         </div>
       </div>
@@ -940,7 +940,7 @@
         <div class="boundary">
           <div><p class="eyebrow" style="color:#dce4ff">Engineering honesty</p><h2>明确写出边界</h2><p>一个可信的作品集项目，不应该把演示实现包装成已经完成的生产系统。</p></div>
           <ul>
-            <li>当前 Run、事件和检查点使用有界内存实现。</li>
+            <li>当前 Run、监督快照、事件和检查点使用有界内存实现。</li>
             <li>生产持久化 SQL 已设计，Repository 接入仍在 Roadmap。</li>
             <li>企业环境还需补充 RBAC、审批票据与分布式状态协调。</li>
             <li>工具能力依赖实际 MCP 服务，Skill 只定义调用边界。</li>
@@ -961,7 +961,7 @@
 
   <footer>
     <div class="footer-row">
-      <span>© <span id="year">2026</span> AI Agent Station · Built by wangyijie01</span>
+      <span>© <span id="year">2026</span> JavaOps Agent · Built by wangyijie01</span>
       <span><a href="https://github.com/wangyijie01/ai-agent-station-v2">Source on GitHub</a></span>
     </div>
   </footer>

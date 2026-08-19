@@ -1,8 +1,8 @@
-<h1 align="center">AI Agent Station</h1>
+<h1 align="center">JavaOps Agent</h1>
 
 <p align="center">
-  面向复杂任务的可治理 AI Agent 平台<br/>
-  让 Skills、运行状态、工具权限和执行审计从 Demo 进入可管理的工程边界
+  面向传统 Java 服务的 AI Agent 智能运维分析平台<br/>
+  主动发现异常，联动日志、监控与知识库完成可追踪的根因分析
 </p>
 
 <div align="center">
@@ -11,246 +11,193 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.3-6db33f?style=flat-square)
 ![Spring AI](https://img.shields.io/badge/Spring%20AI-1.0.0-4f46e5?style=flat-square)
 ![React](https://img.shields.io/badge/React-18-149eca?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square)
-![Architecture](https://img.shields.io/badge/Architecture-DDD%20%2B%20Agent%20Runtime-0f766e?style=flat-square)
+![CI](https://img.shields.io/github/actions/workflow/status/wangyijie01/ai-agent-station-v2/ci.yml?branch=main&style=flat-square&label=CI)
+![License](https://img.shields.io/badge/license-upstream%20terms-64748b?style=flat-square)
 
-[在线介绍](https://wangyijie01.github.io/ai-agent-station-v2/) · [功能特性](#-功能特性) · [架构设计](#-架构设计) · [快速开始](#-快速开始) · [项目结构](#-项目结构)
+[在线介绍](https://wangyijie01.github.io/ai-agent-station-v2/) · [运维闭环](#-java-服务智能监督闭环) · [架构设计](#-架构设计) · [快速开始](#-快速开始) · [API](#-核心-api)
 
 </div>
 
 ---
 
-## 📖 项目介绍
+## 项目定位
 
-AI Agent Station 是一个前后端一体的智能体工程项目。平台基于 Spring AI 组织模型、Prompt、Advisor、RAG 与 MCP 工具，并在传统 Agent 编排能力之上增加文件型 Skills、Run 状态机、断点恢复、工具权限治理、SSE 事件审计和 Prometheus 可观测能力。
+通用大模型擅长自然语言理解与生成，但直接用于企业研发运维时仍有三个问题：它不了解具体服务上下文；不同场景依赖的 Prompt、知识库与工具差异很大；模型调用外部工具时缺少稳定的状态、权限与审计边界。
 
-项目重点不只是“让模型调用工具”，而是回答下面几个工程问题：
+JavaOps Agent 不是一个通用聊天机器人，而是一套**可配置、可装配、可执行的 Java 服务智能运维平台**。系统主动探测 Spring Boot 服务，把连续异常聚合成运维事件，再按场景动态装配 Model、Prompt、Advisor、RAG、Skills 与 MCP 工具，输出包含证据链、可能根因、止损方案和验证步骤的分析结果。
 
-- 一次 Agent 执行如何拥有稳定、可查询的运行身份？
-- 模型选择了什么 Skill、调用了什么工具，能否被解释和审计？
-- 高风险工具如何经过白名单、预算和人工授权后再执行？
-- 任务等待补充信息或执行失败后，能否从检查点继续？
-- 前端能否实时看到 Run 状态、SSE 事件、质量评估与工具审计？
+典型场景：
+
+- Java 服务健康监督与异常事件聚合
+- 基于 TraceId、异常堆栈和时间窗口的日志根因分析
+- Prometheus / Grafana 指标查询与异常趋势诊断
+- 基于 PostgreSQL + PGVector 的内部知识问答
+- 发布巡检、SQL 性能诊断和故障响应
 
 > [!NOTE]
-> 当前仓库已经合并后端、React 管理台和项目介绍页，`backend`、`frontend`、`docs` 共同组成一个完整项目，不再需要分别查找两个仓库。
+> 本仓库已整合 Spring Boot 后端、React 管理台和 GitHub Pages 项目介绍页。项目主线是“Java 服务智能运维”，Agent Runtime 与工具治理是保证该主线可靠执行的工程支撑。
 
-![AI Agent Station 项目概览](docs/assets/og.png)
+![JavaOps Agent 项目概览](docs/assets/og-javaops.png)
 
-## ✨ 功能特性
+## Java 服务智能监督闭环
 
-### 🤖 Agent 编排与 Skills
+```mermaid
+flowchart LR
+    Service[传统 Java 服务] -->|Actuator 探测| Probe[健康探测器]
+    Probe --> Threshold{连续失败阈值}
+    Threshold -->|未达到| Snapshot[更新健康快照]
+    Threshold -->|达到| Incident[创建或更新运维事件]
+    Incident --> Context[生成 Agent 分析上下文]
+    Context --> Skills[日志 / 监控 Skills]
+    Skills --> MCP[受治理 MCP 工具]
+    MCP --> Result[证据链 / 根因 / 止损 / 验证]
+    Result --> Runtime[Run / SSE / 审计]
+    Service -->|恢复 UP| Resolve[自动关闭事件]
+```
 
-- ✅ 支持 Auto、Flow、Fixed 三种 Agent 执行策略
-- ✅ 从 `SKILL.md` 加载场景说明、触发词、优先级、风险级别和工具白名单
-- ✅ 支持显式选择 Skill，也支持根据用户任务进行可解释路由
-- ✅ 结构化解析模型决策，并保留旧格式兼容能力
+系统已实现：
 
-### 🔄 Run 生命周期
+- 为每个服务配置健康端点、检查周期、超时、慢响应阈值和失败阈值
+- 将单次抖动与持续故障分开处理，达到阈值后才创建事件
+- 按服务去重活跃事件，累计出现次数并保留最近证据
+- 支持事件确认、人工关闭、恢复自动关闭和关联 Agent Run
+- 触发分析时固定选择 `monitoring-diagnosis` 与 `log-root-cause` Skills
+- 输出 `ops_service_health`、探测耗时和事件计数等 Prometheus 指标
+- 在 React「Java 服务监督」页面管理目标、查看快照与事件，并实时消费分析 SSE
 
-- ✅ 为每次执行生成 `runId`、`traceId` 和有序事件序号
-- ✅ 支持创建、运行、等待用户输入、成功、失败和取消状态
-- ✅ 使用客户端幂等键避免重复创建相同 Run
-- ✅ 支持检查点、失败恢复和等待补充信息后的继续执行
+详细规则与接口见 [Java 服务智能监督设计](docs/ops-supervision.md)。
 
-### 🛡️ 工具治理
+## 核心能力
 
-- ✅ 默认拒绝未进入 Skill 白名单的工具
-- ✅ 按只读、中风险、高风险对工具调用进行分级
-- ✅ 高风险调用必须命中可信授权列表
-- ✅ 提供调用预算、只读重试、幂等结果、熔断和敏感信息脱敏
-- ✅ 记录工具决策、耗时、尝试次数和输入摘要，便于追踪审计
+### 配置驱动的 Agent 动态装配
 
-### 📡 事件与可观测
+- Model、Prompt、Advisor、MCP、RAG 等组件以数据库配置组织
+- 通过装配节点与 Spring 上下文按业务场景生成 ChatClient
+- 新场景复用通用执行引擎，减少重复编写独立 Agent
 
-- ✅ 通过 SSE 实时返回 Agent 决策、工具调用和状态变化
-- ✅ 支持查询 Run 快照、事件、检查点、质量评估和工具审计
-- ✅ 基于 Spring Boot Actuator 暴露健康检查和 Prometheus 指标
-- ✅ 统计 Run 状态转换、工具调用次数与执行耗时
+### 多执行模式与文件型 Skills
 
-### 🖥️ React 管理台
+- `Auto`：分析、执行、质量监督与总结循环
+- `Flow`：工具分析、任务规划与步骤化执行
+- `Fixed`：按配置节点执行确定性流程
+- 6 个 `SKILL.md` 内置能力，声明场景、触发词、风险级别和最小工具白名单
+- 支持显式选择与触发词路由，并返回命中原因
 
-- ✅ 管理 Agent、Client、Model、Prompt、Advisor、RAG 和 MCP 配置
-- ✅ 使用 FlowGram 可视化编辑 Agent 工作流
-- ✅ 在运行台选择 Skills、设置最大步数和工具预算
-- ✅ 新建、恢复、取消 Run，并查看实时事件时间线
-- ✅ 查看运行评估结果和工具放行、拒绝、重试、熔断记录
+### MCP 与 RAG
 
-## 🏗 架构设计
+- 通过 MCP 接入日志、监控、搜索、通知与内容发布等外部能力
+- 兼容 SSE / Stdio 两种 MCP 连接方式
+- 基于 PostgreSQL + PGVector 完成文档解析、向量存储、标签管理与检索增强
+- 将工具返回结果作为证据，不允许其绕过应用侧治理
 
-### 整体架构
+### 可恢复、可审计的 Agent Runtime
+
+- 每次执行生成 `runId`、`traceId` 与严格递增事件序号
+- 支持创建、运行、等待输入、成功、失败、取消等状态转换
+- 通过幂等键抑制重复 Run，支持检查点、失败恢复和等待补充信息后继续执行
+- 通过 SSE 推送决策、工具调用与状态变化，并提供事后查询和质量评估
+
+### 工具调用治理
+
+- 工具调用必须命中当前 Skills 合并后的白名单
+- 按只读、中风险、高风险分级，高风险操作要求显式授权
+- 支持调用预算、只读重试、幂等结果、熔断和敏感信息脱敏
+- 记录决策、输入摘要、耗时、尝试次数和结果，便于追踪问题
+
+## 架构设计
 
 ```mermaid
 flowchart TB
-    UI[React 管理台] -->|HTTP / SSE| API[AiAgentController]
-    API --> Runtime[Agent Run Runtime]
-    Runtime --> Router[Skill Registry & Router]
-    Runtime --> Strategy[Auto / Flow / Fixed Strategy]
-    Strategy --> Client[Spring AI ChatClient]
-    Client --> Guard[Tool Governance]
-    Guard --> MCP[MCP / ToolCallback]
-    Runtime --> Audit[Event / Checkpoint / Evaluation]
-    Runtime --> Metrics[Actuator / Prometheus]
-    Strategy --> Store[(MySQL / PGVector / Redis)]
+    UI[React 管理台] -->|REST / SSE| API[Trigger: Ops & Agent API]
+    API --> OPS[Java 服务监督域]
+    OPS --> PROBE[Actuator Probe]
+    OPS --> INCIDENT[Incident Lifecycle]
+    INCIDENT --> DISPATCH[Agent Dispatch]
+    API --> DISPATCH
+    DISPATCH --> RUNTIME[Run Runtime]
+    RUNTIME --> ROUTER[Skill Registry & Router]
+    DISPATCH --> MODE{Auto / Flow / Fixed}
+    MODE --> CLIENT[Spring AI ChatClient]
+    CLIENT --> GUARD[Tool Governance]
+    GUARD --> MCP[MCP: 日志 / 监控 / 通知]
+    CLIENT --> RAG[PGVector RAG]
+    RUNTIME --> OBS[Event / Checkpoint / Evaluation]
+    OPS --> METRICS[Actuator / Prometheus]
+    OBS --> METRICS
+    CONFIG[(MySQL 配置)] --> DISPATCH
 ```
 
-### 一次 Run 的执行链路
+设计分为三层：
 
-```text
-用户提交任务
-    │
-    ▼
-幂等检查 ── 命中 ──► 返回已有 Run
-    │ 未命中
-    ▼
-Skill 路由与工具白名单合并
-    │
-    ▼
-创建 runId / traceId，进入 RUNNING
-    │
-    ▼
-模型决策 ──► 工具治理 ──► MCP 工具
-    │             │
-    │             └── 白名单 / 风险 / 授权 / 预算 / 熔断 / 审计
-    ▼
-写入事件与检查点
-    │
-    ├── 需要补充信息 ──► WAITING_USER_INPUT ──► 恢复执行
-    ├── 执行成功 ─────► SUCCEEDED
-    ├── 执行异常 ─────► FAILED ──► 恢复执行
-    └── 主动取消 ─────► CANCELED
-```
+1. **业务目标层**：监督传统 Java 服务，发现异常并生成可处理的运维事件。
+2. **Agent 能力层**：动态装配模型、Prompt、Advisor、RAG、Skills 与 MCP。
+3. **工程保障层**：用 Run 状态机、工具治理、SSE、指标与审计约束非确定性行为。
 
-### Run 状态机
+更完整的状态机、执行时序和生产化取舍见 [Agent Runtime V2 设计](docs/agent-v2-design.md)，持久化表模型见 [Runtime SQL](docs/sql/agent-runtime-v2.sql)。
 
-```mermaid
-stateDiagram-v2
-    [*] --> CREATED
-    CREATED --> RUNNING
-    CREATED --> CANCELED
-    RUNNING --> WAITING_USER_INPUT
-    RUNNING --> SUCCEEDED
-    RUNNING --> FAILED
-    RUNNING --> CANCELED
-    WAITING_USER_INPUT --> RUNNING: resume
-    WAITING_USER_INPUT --> CANCELED
-    FAILED --> RUNNING: resume
-    FAILED --> CANCELED
-```
+## 技术栈
 
-更完整的状态约束、时序、数据模型与工程取舍见 [V2 设计文档](docs/agent-v2-design.md)，生产持久化表结构草案见 [Runtime SQL](docs/sql/agent-runtime-v2.sql)。
-
-## 🧠 内置 Skills
-
-| Skill | 使用场景 | 治理重点 |
+| 分类 | 技术 | 用途 |
 | --- | --- | --- |
-| `log-root-cause` | 日志根因分析 | 先收集证据，再给出根因与修复建议 |
-| `monitoring-diagnosis` | 监控指标诊断 | 关联指标、时间窗口与异常趋势 |
-| `knowledge-grounded-answer` | 知识库问答 | 回答必须基于检索到的证据 |
-| `incident-response` | 线上故障响应 | 控制变更风险，保留处置记录 |
-| `release-inspection` | 发布前后巡检 | 对比发布窗口内的健康状态 |
-| `sql-performance` | SQL 性能诊断 | 分析执行计划、索引与慢查询 |
+| 后端 | Java 17、Spring Boot 3.4.3、Spring AI 1.0.0 | Web、Agent 编排、模型与工具集成 |
+| 数据 | MySQL、MyBatis、Redis | 配置数据、持久化模型与分布式扩展 |
+| 知识库 | PostgreSQL、PGVector、Tika | 文档解析、Embedding 与向量检索 |
+| 工具协议 | MCP SSE / Stdio | 日志、监控、搜索、通知等外部工具 |
+| 可观测 | Actuator、Micrometer、Prometheus | 健康检查、运行与探测指标 |
+| 前端 | React 18、TypeScript、Semi UI、FlowGram | 管理台、监督页面和流程编辑器 |
+| 工程 | Maven Wrapper、npm、Docker Compose、GitHub Actions | 构建、环境与持续集成 |
 
-新增 Skill 只需在 `backend/ai-agent-station-study-domain/src/main/resources/agent-skills` 下创建目录和 `SKILL.md`，无需修改通用执行节点。
-
-## 🛠 技术栈
-
-### 后端
-
-| 技术 | 版本 | 作用 |
-| --- | --- | --- |
-| Java | 17 | 核心开发语言 |
-| Spring Boot | 3.4.3 | Web、依赖装配、任务与可观测 |
-| Spring AI | 1.0.0 | ChatClient、Advisor、MCP 与向量检索 |
-| MyBatis | 3.0.4 | 配置和业务数据访问 |
-| MySQL | 8.x | Agent、Client、Prompt 等配置数据 |
-| PostgreSQL + PGVector | - | RAG 向量知识库 |
-| Redis | 6.x+ | 缓存及生产态幂等扩展 |
-| Micrometer + Prometheus | - | 运行指标采集 |
-
-### 前端
-
-| 技术 | 作用 |
-| --- | --- |
-| React 18 + TypeScript | 管理台和运行控制台 |
-| Rsbuild | 开发服务与生产构建 |
-| Semi UI | 管理页面组件 |
-| FlowGram | 可视化 Agent 工作流编辑器 |
-| Fetch + SSE | REST API 与运行事件流 |
-
-## 📁 项目结构
+## 项目结构
 
 ```text
 ai-agent-station-v2/
-├── backend/                              # Spring AI 多模块后端
-│   ├── ai-agent-station-study-api/       # API 契约、DTO、响应模型
-│   ├── ai-agent-station-study-app/       # Spring Boot 启动与配置
-│   ├── ai-agent-station-study-domain/    # Agent 编排、Skills、Runtime
-│   ├── ai-agent-station-study-trigger/   # HTTP 接口、任务和监听器
-│   ├── ai-agent-station-study-infrastructure/ # DAO、Repository、外部适配
-│   ├── ai-agent-station-study-types/     # 通用类型、异常和框架组件
-│   ├── pom.xml
-│   └── mvnw.cmd / mvnw
-├── frontend/                             # React 管理台与运行控制台
-│   ├── src/
-│   ├── package.json
-│   └── rsbuild.config.ts
-├── docs/                                 # GitHub Pages、设计文档与 SQL
-├── .github/workflows/pages.yml           # GitHub Pages 自动部署
-└── README.md
+├── backend/
+│   ├── ai-agent-station-study-api/            # 请求 DTO 与接口契约
+│   ├── ai-agent-station-study-app/            # 启动、数据源与监督配置
+│   ├── ai-agent-station-study-domain/         # Agent Runtime、Skills、运维监督域
+│   ├── ai-agent-station-study-trigger/        # REST/SSE API 与定时探测
+│   ├── ai-agent-station-study-infrastructure/ # MyBatis DAO、Repository、外部适配
+│   └── ai-agent-station-study-types/          # 通用类型与框架组件
+├── frontend/                                  # React 管理台与 Java 服务监督页面
+├── docs/                                      # GitHub Pages、设计文档与 SQL
+├── compose.yaml                               # MySQL / PGVector / Redis 本地环境
+├── .env.example                               # 无敏感信息的配置模板
+└── .github/workflows/                         # CI 与 Pages 自动发布
 ```
 
-## 🚀 快速开始
+## 快速开始
 
-### 前置要求
+### 1. 准备环境
 
-- JDK 17+
-- Node.js 20+ / npm 10+
-- MySQL 8.x
-- PostgreSQL + PGVector
-- 可用的 OpenAI 兼容模型服务
-- Redis（按实际配置启用）
-
-### 1. 克隆项目
+要求：JDK 17+、Node.js 20+、Docker Desktop，以及一个 OpenAI 兼容模型服务。
 
 ```bash
 git clone https://github.com/wangyijie01/ai-agent-station-v2.git
 cd ai-agent-station-v2
+cp .env.example .env
+docker compose up -d
 ```
 
-### 2. 准备后端环境变量
+将 `.env` 中的密码与模型地址替换为本地配置。后端从 `backend` 目录启动时会可选读取仓库根目录的 `.env`；不要提交真实 API Key、数据库密码或令牌。
 
-PowerShell 示例：
+### 2. 启动后端
 
-```powershell
-$env:OPENAI_BASE_URL = "https://api.example.com"
-$env:OPENAI_API_KEY = "<your-api-key>"
-$env:MYSQL_USERNAME = "root"
-$env:MYSQL_PASSWORD = "<your-password>"
-$env:MYSQL_URL = "jdbc:mysql://127.0.0.1:3306/ai-agent-station-study?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai"
-$env:PGVECTOR_USERNAME = "postgres"
-$env:PGVECTOR_PASSWORD = "<your-password>"
-$env:PGVECTOR_URL = "jdbc:postgresql://127.0.0.1:5432/ai-rag-knowledge"
-```
-
-> [!IMPORTANT]
-> 不要把真实 API Key、数据库密码或访问令牌提交到 Git。仓库配置只保留环境变量占位符。
-
-### 3. 启动后端
+PowerShell：
 
 ```powershell
 cd backend
-./mvnw.cmd -pl ai-agent-station-study-app -am install -DskipTests
+./mvnw.cmd -pl ai-agent-station-study-app -am -DskipTests package
 ./mvnw.cmd -f ai-agent-station-study-app/pom.xml spring-boot:run
 ```
 
-默认端口为 `8099`：
+后端默认地址：`http://127.0.0.1:8099`
 
-- 健康检查：`GET http://127.0.0.1:8099/actuator/health`
-- Prometheus：`GET http://127.0.0.1:8099/actuator/prometheus`
-- Agent API：`http://127.0.0.1:8099/api/v1/agent`
+- 健康检查：`GET /actuator/health`
+- Prometheus：`GET /actuator/prometheus`
+- Agent API：`/api/v1/agent`
+- 运维监督 API：`/api/v1/ops`
 
-### 4. 启动前端
+### 3. 启动前端
 
 ```bash
 cd frontend
@@ -258,80 +205,78 @@ npm ci
 npm run dev
 ```
 
-默认访问地址：`http://127.0.0.1:3002`。后端地址集中配置在 `frontend/src/config/api.ts`。
+开发环境默认请求 `http://127.0.0.1:8099`；生产构建可通过 `PUBLIC_API_BASE_URL` 指定后端，未配置时使用同源地址。
 
-## 🔌 Agent API
+## 核心 API
 
-基础路径：`/api/v1/agent`
+### 运维监督 `/api/v1/ops`
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| `POST` | `/auto_agent` | 创建或恢复 Agent Run，以 SSE 返回事件 |
-| `GET` | `/skills` | 查询全部文件型 Skills |
-| `POST` | `/skills/route` | 预览任务的 Skill 路由结果 |
+| `GET / POST` | `/services` | 查询或保存 Java 服务监督目标 |
+| `POST` | `/services/{serviceId}/probe` | 立即执行一次 Actuator 探测 |
+| `GET` | `/snapshots` | 查询全部最新健康快照 |
+| `GET` | `/incidents` | 查询运维事件，可按状态过滤 |
+| `POST` | `/incidents/{id}/acknowledge` | 确认事件 |
+| `POST` | `/incidents/{id}/resolve` | 人工关闭事件 |
+| `POST` | `/incidents/{id}/analyze` | 创建关联 Agent Run，以 SSE 返回分析事件 |
+
+### Agent Runtime `/api/v1/agent`
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `POST` | `/auto_agent` | 创建或恢复 Run，并通过 SSE 返回事件 |
+| `GET / POST` | `/skills`、`/skills/route` | 查询 Skills 或预览路由 |
 | `GET` | `/runs/{runId}` | 查询 Run 快照 |
 | `GET` | `/runs/{runId}/events` | 查询有序事件 |
 | `GET` | `/runs/{runId}/checkpoints` | 查询检查点 |
-| `GET` | `/runs/{runId}/evaluation` | 查询运行质量评估 |
-| `GET` | `/runs/{runId}/tool-audits` | 查询工具治理审计 |
-| `POST` | `/runs/{runId}/cancel` | 取消运行 |
+| `GET` | `/runs/{runId}/evaluation` | 查询确定性质量评估 |
+| `GET` | `/runs/{runId}/tool-audits` | 查询工具调用治理记录 |
+| `POST` | `/runs/{runId}/cancel` | 取消可中断的运行 |
 
-请求示例：
-
-```json
-{
-  "aiAgentId": "3",
-  "message": "分析 payment 服务最近 30 分钟的超时告警，先给证据再给根因",
-  "sessionId": "session-demo-001",
-  "idempotencyKey": "incident-payment-001",
-  "requestedSkillIds": ["log-root-cause", "monitoring-diagnosis"],
-  "approvedToolNames": [],
-  "maxStep": 6,
-  "maxToolCalls": 8
-}
-```
-
-## ✅ 项目验证
+## 验证
 
 ```powershell
-# 后端：不依赖真实模型和外部中间件的领域测试
+# 领域测试：不依赖真实模型和外部中间件
 cd backend
 ./mvnw.cmd -pl ai-agent-station-study-domain -am test
 
-# 后端：完整多模块编译
-./mvnw.cmd -DskipTests compile
+# 后端完整多模块打包
+./mvnw.cmd -pl ai-agent-station-study-app -am -DskipTests package
 
-# 前端：代码检查与生产构建
+# 前端静态检查与生产构建
 cd ../frontend
 npm run lint -- --quiet
 npm run build
 ```
 
-领域测试覆盖 Skill 路由、结构化决策解析、状态转换、幂等、等待与恢复，以及工具白名单、授权、预算、重试和审计。
+当前 19 项确定性测试覆盖 Skill 加载与路由、结构化决策解析、Run 状态转换与恢复、工具白名单与风险治理，以及 Actuator 状态判定、服务探测、失败阈值、事件去重、确认、关联 Run 和自动恢复闭环。GitHub Actions 会对每次 Push / Pull Request 重复执行这些门禁。
 
-## 📌 当前边界
+## 当前边界
 
-- Run、事件、检查点和工具审计目前使用有界内存实现，适合演示领域语义；应用重启后不会保留，也不支持多实例一致性。
-- `docs/sql/agent-runtime-v2.sql` 已提供持久化表模型，但尚未接入 Repository。
-- 生产环境还需要接入 Redis 幂等与分布式锁、企业 RBAC、服务端签发的审批票据及统一审计存储。
-- 工具能力取决于实际装配的 MCP 服务；Skill 白名单只定义治理边界，不代表工具一定存在。
-- 前端当前以 ESLint 和生产构建作为验收门槛，尚未配置自动化测试。
+- Agent Run、事件、检查点、工具审计，以及新增的监督快照与事件，当前使用有界进程内状态；适合演示完整领域语义，但应用重启后不会保留。
+- [Runtime SQL](docs/sql/agent-runtime-v2.sql) 已给出 Run 与运维事件的 MySQL 表模型；多实例一致性仍需接入 Repository、Redis 幂等与租约。
+- 工具能力取决于实际装配的 MCP 服务；Skill 声明的是最小权限边界，不代表对应工具一定在线。
+- 管理 API 和探测目标在企业部署时必须置于受信网络，并由网关补充 RBAC、地址白名单和审批票据。
+- `approvedToolNames` 仅演示运行级授权语义，生产环境不能信任普通客户端直接提交。
 
-## 🗺 Roadmap
+## Roadmap
 
-- [x] 文件型 Skills 与可解释路由
-- [x] Run 状态机、幂等、检查点与恢复
-- [x] 工具白名单、风险分级、预算、重试与熔断
-- [x] SSE 事件、运行评估和 Prometheus 指标
-- [x] React Agent 运行控制台
-- [ ] MySQL 持久化 Run、事件与检查点
-- [ ] Redis 分布式幂等和多实例状态协调
-- [ ] 企业 RBAC 与审批票据接入
-- [ ] 前端组件测试和端到端测试
+- [x] Java 服务主动探测、失败抑制、事件去重与恢复闭环
+- [x] 运维事件一键触发日志 / 监控 Agent 分析
+- [x] 配置驱动 Agent 装配与 Auto / Flow / Fixed 执行模式
+- [x] 文件型 Skills、Run 状态机、检查点和 SSE 审计
+- [x] 工具白名单、风险分级、预算、重试、幂等与熔断
+- [x] React Java 服务监督页与 Agent 运行台
+- [x] Docker Compose 本地依赖与 GitHub Actions CI
+- [ ] MySQL 持久化 Run、快照、事件与工具审计
+- [ ] Redis 分布式幂等、多实例租约和任务恢复
+- [ ] 企业 RBAC、服务发现、告警平台和审批系统接入
+- [ ] 真实 MCP 沙箱端到端测试与离线评估数据集
 
-## 📄 来源与许可
+## 来源与许可
 
-本项目基于 KnowledgePlanet 的 [ai-agent-station-study](https://gitcode.net/KnowledgePlanet/ai-agent-station-study) 学习项目继续扩展，保留上游项目结构、署名和版权信息。V2 的 Skills、Run Runtime、工具治理、React 运行台、测试、设计文档与展示页由 [wangyijie01](https://github.com/wangyijie01) 完成。
+本项目基于 KnowledgePlanet 的 [ai-agent-station-study](https://gitcode.net/KnowledgePlanet/ai-agent-station-study) 学习项目继续扩展，保留上游结构、署名和版权信息。Java 服务监督、文件型 Skills、Agent Runtime、工具治理、React 运维工作台、测试、设计文档与展示页由 [wangyijie01](https://github.com/wangyijie01) 在此基础上完成。
 
 公开使用、二次开发或分发时，请同时遵守仓库内声明及上游项目的授权与版权要求。
 
@@ -339,8 +284,8 @@ npm run build
 
 <div align="center">
 
-**AI Agent Station · Governed Agent Runtime**
+**JavaOps Agent · AI-powered Operations for Java Services**
 
-[在线介绍](https://wangyijie01.github.io/ai-agent-station-v2/) · [提交 Issue](https://github.com/wangyijie01/ai-agent-station-v2/issues)
+[在线介绍](https://wangyijie01.github.io/ai-agent-station-v2/) · [查看源码](https://github.com/wangyijie01/ai-agent-station-v2) · [提交 Issue](https://github.com/wangyijie01/ai-agent-station-v2/issues)
 
 </div>

@@ -228,12 +228,12 @@ const LoginPage: React.FC = () => {
             <IconSafe />
           </BrandLogo>
           <BrandTitle heading={1}>
-            AI Agent Station
+            JavaOps Agent
           </BrandTitle>
           <BrandDescription>
-            智能代理管理平台，为您提供专业的AI代理配置和管理服务。
+            面向 Java 服务的智能运维分析平台，统一管理服务监督、Agent 配置与运行审计。
             <br />
-            简单易用，功能强大，助力您的业务智能化升级。
+            从异常发现、证据检索到根因分析与恢复确认，形成完整运维闭环。
           </BrandDescription>
         </BrandSection>
 

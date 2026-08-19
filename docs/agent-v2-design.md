@@ -1,10 +1,18 @@
-# AI Agent Station V2：从 Demo Loop 到可治理 Agent Runtime
+# JavaOps Agent：Java 服务智能运维与可治理 Agent Runtime
 
-## 1. 改造目标
+## 1. 项目目标
+
+项目首先解决的是传统 Java 服务的研发运维问题：服务异常往往需要人工在监控、日志、Trace 和知识文档之间反复切换，不同业务又重复开发独立分析流程。因此系统主动探测 Spring Boot Actuator，把连续异常聚合成运维事件，再按场景装配日志、监控和知识库 Agent 完成证据检索与根因分析。
 
 旧版本已经具备分析、执行、监督、总结的循环，也能通过 Spring AI 调用 MCP 工具，但仍有典型 Demo 局限：Prompt 和执行流程强耦合；模型输出靠自然语言标记解析；任务不能等待补充信息后恢复；工具只要被装配就可能被模型调用；缺少稳定的 run/trace、审计和评估接口。
 
-V2 的目标不是增加更多 Prompt，而是把非确定性的模型行为装进确定性的工程边界：
+所以系统目标分为三个层次：
+
+1. 业务目标：形成“服务探测 → 事件聚合 → Agent 分析 → 恢复关闭”的 Java 智能运维闭环。
+2. 能力平台：按场景动态装配 Model、Prompt、Advisor、RAG、Skills 与 MCP，复用 Auto、Flow、Fixed 执行引擎。
+3. 工程保障：把非确定性的模型行为装进可恢复、可授权、可审计的运行边界。
+
+具体工程目标：
 
 1. 场景方法论由 Skill 管理，并与通用执行引擎解耦。
 2. 每次执行成为有身份、有状态、有事件的 Run。
@@ -16,8 +24,12 @@ V2 的目标不是增加更多 Prompt，而是把非确定性的模型行为装�
 
 ```mermaid
 flowchart LR
-    UI["React Agent 运行台"] -->|"POST + SSE"| API["AiAgentController"]
-    API --> DISPATCH["AgentDispatchDispatchService"]
+    UI["React 运维监督 / Agent 运行台"] -->|"REST + SSE"| API["Ops & Agent Controller"]
+    API --> OPS["OpsSupervisionService"]
+    OPS --> PROBE["Actuator Probe"]
+    PROBE --> INCIDENT["Incident Lifecycle"]
+    INCIDENT --> DISPATCH["AgentDispatchDispatchService"]
+    API --> DISPATCH
     DISPATCH --> RUN["AgentRunService"]
     RUN --> ROUTER["AgentSkillRouter"]
     ROUTER --> REGISTRY["AgentSkillRegistry"]
@@ -34,9 +46,12 @@ flowchart LR
     RUN --> EVENT["事件 / 检查点 / 评估"]
     POLICY --> AUDIT["工具审计"]
     RUN --> METRIC["Micrometer / Prometheus"]
+    OPS --> METRIC
 ```
 
-核心设计是两条控制面：
+核心设计是一条业务主链和两条控制面：
+
+- 运维业务主链负责服务探测、失败抑制、事件去重、分析触发和恢复关闭，详细规则见 [Java 服务智能监督闭环](ops-supervision.md)。
 
 - Run 控制面管理生命周期、幂等、事件和恢复。
 - Tool 控制面管理模型能否以及如何调用外部能力。
@@ -241,8 +256,10 @@ Prometheus 指标：
 
 ## 11. 前端运行台
 
-`ai-agent-station-front/src/pages/agent-runtime.tsx` 提供：
+`frontend/src/pages/ops-supervision.tsx` 与 `frontend/src/pages/agent-runtime.tsx` 提供：
 
+- 管理 Java 服务监督目标，查看健康快照、连续失败和聚合事件。
+- 确认或关闭事件，并从事件上下文一键触发日志 / 监控 Agent 分析。
 - 选择 Agent 和显式 Skills。
 - 设置最大执行步数、工具预算、高风险工具授权。
 - 新建 Run、按 runId 恢复、取消。
@@ -259,6 +276,7 @@ Prometheus 指标：
 - JSON 决策和旧格式 fallback。
 - 状态转换、幂等重放、等待输入和恢复。
 - 工具白名单、高风险授权、预算、幂等、只读重试和审计。
+- Java 服务探测、连续失败阈值、事件去重、确认、Run 关联和自动恢复。
 
 验收命令：
 
@@ -267,7 +285,7 @@ cd backend
 .\mvnw.cmd -pl ai-agent-station-study-domain -am test
 .\mvnw.cmd -DskipTests compile
 
-cd ..\ai-agent-station-front
+cd ..\frontend
 npm run lint -- --quiet
 npm run build
 ```
@@ -300,15 +318,15 @@ Prompt 只能影响模型意图，不能形成安全边界。模型可能忽略�
 
 ### 30 秒版本
 
-“我把原来只会分析—执行—总结的 Spring AI Demo 升级成了可治理 Agent Runtime。场景能力用文件型 Skills 管理并决定最小工具白名单；每次执行有 runId、traceId、状态机、幂等键和检查点，能等待用户输入后恢复；所有 MCP 调用都经过应用侧风险分级、预算、高风险审批、重试熔断和脱敏审计；SSE 事件、Prometheus 指标和确定性评估让运行可追踪。当前内存实现用于验证领域语义，生产表和 Redis/队列替换边界已明确。”
+“我做的是一套面向传统 Java 服务的 Agent 智能运维平台。系统主动探测 Spring Boot Actuator，通过连续失败阈值抑制抖动并按服务聚合事件，再自动组合日志分析和监控诊断 Skills，通过 MCP 查询指标、日志与 Trace，输出证据链、根因和止损方案。底层用配置驱动方式装配 Model、Advisor、RAG 和工具，并通过 runId、状态机、检查点、工具白名单、风险审批、SSE 和 Prometheus 保证分析过程可恢复、可追踪、可审计。”
 
 ### 3 分钟展开顺序
 
-1. 先讲旧问题：非结构化、无状态、工具无边界、不可恢复。
-2. 再讲两个控制面：Run 生命周期和 Tool 治理。
-3. 用一次故障诊断说明 Skill 路由、证据查询、WAIT_USER_INPUT、恢复。
-4. 重点讲高风险工具为何必须代码层 fail-closed。
-5. 给出测试和指标证据。
+1. 先讲业务问题：Java 服务异常依赖人工跨监控、日志、Trace 和知识库排查。
+2. 用一次故障说明探测、失败抑制、事件聚合、Skills 路由与证据查询闭环。
+3. 再讲配置驱动装配如何复用 Model、Advisor、RAG、MCP 与三类执行模式。
+4. 说明 Run 生命周期和 Tool 治理如何控制非确定性与副作用。
+5. 给出测试、SSE、traceId 和 Prometheus 指标证据。
 6. 最后主动说明内存版边界及 MySQL/Redis/队列生产化方案。
 
 ### 高频追问

@@ -107,3 +107,44 @@ CREATE TABLE IF NOT EXISTS `ai_agent_tool_audit` (
   UNIQUE KEY `uk_audit_id` (`audit_id`),
   KEY `idx_run_tool_time` (`run_id`, `tool_name`, `create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工具授权与调用审计';
+
+CREATE TABLE IF NOT EXISTS `ops_service_target` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `service_id` VARCHAR(64) NOT NULL,
+  `service_name` VARCHAR(100) NOT NULL,
+  `environment` VARCHAR(32) NOT NULL,
+  `base_url` VARCHAR(512) NOT NULL,
+  `health_path` VARCHAR(128) NOT NULL DEFAULT '/actuator/health',
+  `agent_id` VARCHAR(64) DEFAULT NULL,
+  `enabled` TINYINT NOT NULL DEFAULT 1,
+  `interval_seconds` INT NOT NULL DEFAULT 30,
+  `timeout_ms` INT NOT NULL DEFAULT 3000,
+  `failure_threshold` INT NOT NULL DEFAULT 3,
+  `slow_threshold_ms` BIGINT NOT NULL DEFAULT 1500,
+  `create_time` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `update_time` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_service_id` (`service_id`),
+  KEY `idx_environment_enabled` (`environment`, `enabled`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Java 服务监督目标';
+
+CREATE TABLE IF NOT EXISTS `ops_incident` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `incident_id` VARCHAR(64) NOT NULL,
+  `service_id` VARCHAR(64) NOT NULL,
+  `status` VARCHAR(32) NOT NULL,
+  `severity` VARCHAR(32) NOT NULL,
+  `summary` VARCHAR(512) NOT NULL,
+  `evidence` JSON NOT NULL,
+  `analysis_prompt` MEDIUMTEXT NOT NULL,
+  `linked_run_id` VARCHAR(64) DEFAULT NULL,
+  `occurrence_count` INT NOT NULL DEFAULT 1,
+  `opened_at` DATETIME(3) NOT NULL,
+  `acknowledged_at` DATETIME(3) DEFAULT NULL,
+  `resolved_at` DATETIME(3) DEFAULT NULL,
+  `update_time` DATETIME(3) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_incident_id` (`incident_id`),
+  KEY `idx_service_status_time` (`service_id`, `status`, `update_time`),
+  KEY `idx_linked_run` (`linked_run_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Java 服务运维事件';

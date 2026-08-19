@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { LoginPage, DashboardPage, AgentConfigPage, AgentListPage, AgentRuntimePage, ClientManagement, AiClientApiManagement, AdvisorManagement, RagOrderManagement, ClientModelManagement, ClientSystemPromptManagement, ClientToolMcpManagement } from './pages';
+import { LoginPage, DashboardPage, AgentConfigPage, AgentListPage, AgentRuntimePage, OpsSupervisionPage, ClientManagement, AiClientApiManagement, AdvisorManagement, RagOrderManagement, ClientModelManagement, ClientSystemPromptManagement, ClientToolMcpManagement } from './pages';
 
 // 统一的认证检查函数
 const isAuthenticated = (): boolean => {
@@ -57,6 +57,14 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <AgentRuntimePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ops-supervision"
+          element={
+            <ProtectedRoute>
+              <OpsSupervisionPage />
             </ProtectedRoute>
           }
         />

@@ -166,6 +166,17 @@ const menuItems = [
     ],
   },
   {
+    itemKey: 'operations',
+    text: '智能运维',
+    icon: <IconActivity />,
+    items: [
+      {
+        itemKey: 'ops-supervision',
+        text: 'Java 服务监督',
+      },
+    ],
+  },
+  {
     itemKey: 'resources',
     text: '资源管理',
     icon: <IconFolder />,
@@ -246,8 +257,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <IconBranch />
         </Logo>
         <BrandInfo $collapsed={collapsed}>
-          <h4>AI Agent Station</h4>
-          <p>智能代理管理平台</p>
+          <h4>JavaOps Agent</h4>
+          <p>Java 服务智能运维</p>
         </BrandInfo>
       </SidebarHeader>
 

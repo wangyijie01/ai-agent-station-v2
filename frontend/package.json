@@ -1,7 +1,7 @@
 {
   "name": "ai-agent-station-frontend",
   "version": "2.0.0",
-  "description": "AI Agent Station V2 的 React 管理台与可视化运行控制台",
+  "description": "JavaOps Agent 的 Java 服务智能监督、Agent 配置与运行控制台",
   "private": true,
   "keywords": ["spring-ai", "agent-runtime", "react", "flowgram"],
   "license": "MIT",
@@ -57,8 +57,8 @@
     "lint": "eslint ./src --cache",
     "lint:fix": "eslint ./src --fix",
     "start": "cross-env NODE_ENV=development rsbuild dev --open",
-    "test": "echo \"No automated tests configured\"",
-    "test:cov": "echo \"No coverage task configured\"",
+    "test": "npm run lint -- --quiet && npm run build",
+    "verify": "npm run test",
     "watch": "rsbuild build --watch"
   }
 }

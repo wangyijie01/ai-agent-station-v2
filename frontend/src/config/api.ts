@@ -5,9 +5,10 @@
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 const isProduction = process.env.NODE_ENV === 'production';
+const configuredBaseDomain = process.env.PUBLIC_API_BASE_URL?.replace(/\/$/, '');
 
 export const API_CONFIG = {
-  BASE_DOMAIN: isDevelopment ? 'http://127.0.0.1:8099' : 'http://127.0.0.1:8099',
+  BASE_DOMAIN: configuredBaseDomain || (isDevelopment ? 'http://127.0.0.1:8099' : ''),
   API_VERSION: 'v1',
   TIMEOUT: 30000,
   RETRY_TIMES: 3,
@@ -97,6 +98,10 @@ export const API_ENDPOINTS = {
     SKILLS: '/skills',
     SKILL_ROUTE: '/skills/route',
     RUNS: '/runs',
+  },
+
+  OPS: {
+    BASE: `${API_CONFIG.BASE_DOMAIN}/api/${API_CONFIG.API_VERSION}/ops`,
   },
 
   // 管理员用户相关接口

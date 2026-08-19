@@ -16,6 +16,6 @@ export default defineConfig({
     },
   },
   html: {
-    title: 'ai-agent-station-front',
+    title: 'JavaOps Agent · Java 服务智能运维',
   },
 });

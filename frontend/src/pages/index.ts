@@ -3,6 +3,7 @@ export { DashboardPage } from './dashboard';
 export { AgentConfigPage } from './agent-config';
 export { AgentListPage } from './agent-list';
 export { AgentRuntimePage } from './agent-runtime';
+export { OpsSupervisionPage } from './ops-supervision';
 export { ClientManagement } from './client-management';
 export { AiClientApiManagement } from './ai-client-api-management';
 export { AdvisorManagement } from './advisor-management';
